@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+
 """
 Some of POX's core API and functionality is here, largely in the POXCore
 class (an instance of which is available as pox.core.core).
@@ -414,8 +416,31 @@ class POXCore (EventMixin):
       # Default overridden
       name = obj._core_name
     self.register(name, obj)
+    self.registerOnExternalCore(name, obj)
     return obj
 
+  """
+  Makes here the code to share Core
+  """
+ 
+  
+  def registerOnExternalCore(self, name, component=None):
+    """
+    Makes the object "component" available on external controller
+
+    If only one argument is specified, the given argument is registered
+    using its class name as the name.
+    """
+    #TODO: weak references?
+    if component is None:
+      component = name
+      name = component.__class__.__name__
+      if hasattr(component, '_core_name'):
+        # Default overridden
+        name = component._core_name
+    
+     
+    
   def register (self, name, component=None):
     """
     Makes the object "component" available as pox.core.core.name.
