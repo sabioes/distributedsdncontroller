@@ -105,9 +105,9 @@ class LearningSwitch (object):
     """
 
     packet = event.parsed
-    serialized_packet = pickle.dumps(packet.__dict__)
+    
   
-    self._es.sendObject(serialized_packet)
+    self._es.sendObject("plugName", "objectName", packet)
    
     def flood (message = None):
       """ Floods the packet """

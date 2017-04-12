@@ -63,7 +63,10 @@ class Db_connector(object):
     def close(self):
       self._db_connection.close()
       
-    
+    def insertObject(self, object=None):
+      insertObject = ("INSERT INTO objectdata (plugin_name, object_name, object_content) VALUES (%s, %s, %s)")
+      dataObject =  object
+     
 class ExternalStore(object):
     '''
     classdocs
@@ -74,9 +77,17 @@ class ExternalStore(object):
         '''
         Constructor
         '''
-        _db_database = Db_Connector()
+        self._db_databse = Db_connector
+        
+    def serializeObject(self, obj_param):
+      serialized_obj = pickle.dumps(obj_param)
+      return serialized_obj
+    
+    def sendObject(self, pluginname=None, objectname=None, objcontent=None):
       
-    def sendObject(self, parameter_object=None):
+      so = serializeObject(packet.__dict__)
+      #serialized_packet.pluame = "Plug xzt"
       
       print("Sending object")
       print(object)
+    
