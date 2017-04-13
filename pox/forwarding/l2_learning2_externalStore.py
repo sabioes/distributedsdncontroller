@@ -25,7 +25,6 @@ import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str, str_to_dpid
 from pox.lib.util import str_to_bool
 import time
-import pickle
 from pox.dist.distributed import ExternalStore
 
 log = core.getLogger()
@@ -106,9 +105,9 @@ class LearningSwitch (object):
 
     packet = event.parsed
     
-  
+    #me and my self
     self._es.sendObject("plugName", "objectName", packet)
-   
+    
     def flood (message = None):
       """ Floods the packet """
       msg = of.ofp_packet_out()

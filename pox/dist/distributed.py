@@ -5,9 +5,10 @@ Created on 04/04/2017
 '''
 # coding: latin-1
 import mysql.connector
+import pickle
 from mysql.connector import errorcode
 
-class Db_connector(object):
+class ExternalStore(object):
     '''
     classdocs
     '''
@@ -18,7 +19,8 @@ class Db_connector(object):
         '''
         Constructor
         '''
-      
+        self.connect()
+        print("dbconnected")
     def connect(self):
       try:
         self._db_connection = mysql.connector.connect(user='root', password='qwerty', host='127.0.0.1', database='pox_dstl2')
@@ -63,31 +65,31 @@ class Db_connector(object):
     def close(self):
       self._db_connection.close()
       
-    def insertObject(self, object=None):
+    def insertObject(self):
       insertObject = ("INSERT INTO objectdata (plugin_name, object_name, object_content) VALUES (%s, %s, %s)")
-      dataObject =  object
-     
-class ExternalStore(object):
-    '''
-    classdocs
-    ''' 
-    _db_database = None 
+      dataObject = ('name of plugin','name of object','param_obj.tostring()')
+      
+      self._db_cursor.execute(insertObject, dataObject)
+      last_objectid = self._db_cursor.lastrowid
+      
+      print(last_objectid)
+      
+      self._db_cursor.close()
     
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        self._db_databse = Db_connector
+    def test(self):
+      print("teste")
+     
         
-    def serializeObject(self, obj_param):
-      serialized_obj = pickle.dumps(obj_param)
+    def serializeObject(self, param_obj):
+      serialized_obj = pickle.dumps(param_obj)
       return serialized_obj
     
-    def sendObject(self, pluginname=None, objectname=None, objcontent=None):
+    def sendObject(self, pluginname, objectname, packet):
       
-      so = serializeObject(packet.__dict__)
+      so = self.serializeObject(packet.__dict__)
       #serialized_packet.pluame = "Plug xzt"
+      self.test()
       
       print("Sending object")
-      print(object)
+     
     
