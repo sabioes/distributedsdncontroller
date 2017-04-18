@@ -23,8 +23,8 @@ class ExternalStore(object):
         print("dbconnected")
     def connect(self):
       try:
-        self._db_connection = mysql.connector.connect(user='root', password='qwerty', host='127.0.0.1', database='pox_dstl2')
-        self._db_cursor = self._db_connection.cursor()
+        self._db_connection = mysql.connector.connect(user='root', password='qwertz', host='127.0.0.1', database='pox_dstl2')
+        
       except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
           print("Something is wrong with your user name or password")
@@ -48,10 +48,12 @@ class ExternalStore(object):
         
       self._db_cursor.close()
       
-    def insert(self, params=None):
+    def insert(self):
       insertObject = ("INSERT INTO objectdata (plugin_name, object_name, object_content) VALUES (%s, %s, %s)")
       dataObject = ('plug_example','object_example','Abstract_data_undefined_data_any_data')
-      
+     
+      self._db_cursor = self._db_connection.cursor()
+       
       self._db_cursor.execute(insertObject, dataObject)
       last_objectid = self._db_cursor.lastrowid
       
@@ -65,13 +67,17 @@ class ExternalStore(object):
     def close(self):
       self._db_connection.close()
       
-    def insertObject(self):
+    def insertObject(self, param_obj):
+      print("insert Object")
       insertObject = ("INSERT INTO objectdata (plugin_name, object_name, object_content) VALUES (%s, %s, %s)")
-      dataObject = ('name of plugin','name of object','param_obj.tostring()')
+      dataObject = ('name of plugin','name of object', param_obj)
       
+      self._db_cursor = self._db_connection.cursor()
+     
       self._db_cursor.execute(insertObject, dataObject)
       last_objectid = self._db_cursor.lastrowid
       
+      self._db_connection.commit()
       print(last_objectid)
       
       self._db_cursor.close()
@@ -88,8 +94,8 @@ class ExternalStore(object):
       
       so = self.serializeObject(packet.__dict__)
       #serialized_packet.pluame = "Plug xzt"
-      self.test()
-      
+      self.insertObject(so)
+      #self.insert()
       print("Sending object")
      
     
