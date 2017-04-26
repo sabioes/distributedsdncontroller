@@ -32,6 +32,9 @@ import time
 import os
 import signal
 
+# Import ExternalStore
+from pox.dist.distributed import ExternalStore
+
 _path = inspect.stack()[0][1]
 _ext_path = _path[0:_path.rindex(os.sep)]
 _ext_path = os.path.dirname(_ext_path) + os.sep
@@ -189,8 +192,9 @@ class POXCore (EventMixin):
     RereadConfiguration,
   ])
 
+  _es = None
   version = (0,3,0)
-  version_name = "dart"
+  version_name = "dart-distributed"
 
   def __init__ (self, threaded_selecthub=True, epoll_selecthub=False,
                 handle_signals=True):
@@ -416,7 +420,8 @@ class POXCore (EventMixin):
       # Default overridden
       name = obj._core_name
     self.register(name, obj)
-    self.registerOnExternalCore(name, obj)
+    #call method to register on external core
+    #self.registerOnExternalCore(name, obj)
     return obj
 
   """
@@ -438,9 +443,13 @@ class POXCore (EventMixin):
       if hasattr(component, '_core_name'):
         # Default overridden
         name = component._core_name
-    
-     
-    
+
+    if name in self.components:
+      log.warn("Warning: (DataStore) Registered '%s' multipled times" % (name,))
+
+    self._es = ExternalStore()
+    self._es.sendObject("component", name, component)
+
   def register (self, name, component=None):
     """
     Makes the object "component" available as pox.core.core.name.
@@ -553,6 +562,7 @@ class POXCore (EventMixin):
     1) Set up all the event listeners
     2) Call "_all_dependencies_met" on *sink* if it exists
     3) If attrs=True, set attributes on *sink* for each component
+       (e.g, sink._openflow_ would be set to core.openflow)
        (e.g, sink._openflow_ would be set to core.openflow)
 
     For example, if topology is a dependency, a handler for topology's

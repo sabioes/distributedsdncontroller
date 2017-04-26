@@ -104,10 +104,11 @@ class LearningSwitch (object):
     """
 
     packet = event.parsed
-    
+
     #me and my self
-    self._es.sendObject("plugName", "objectName", packet)
-    
+    self._es.storeObject(self.__class__.__name__, "packetIn", packet)
+    print(self.__class__.__name__)
+
     def flood (message = None):
       """ Floods the packet """
       msg = of.ofp_packet_out()
@@ -184,7 +185,7 @@ class LearningSwitch (object):
         self.connection.send(msg)
 
 
-class l2_learning (object):
+class l2_learning_externalStore (object):
   """
   Waits for OpenFlow switches to connect and makes them learning switches.
   """
@@ -222,4 +223,4 @@ def launch (transparent=False, hold_down=_flood_delay, ignore = None):
     ignore = ignore.replace(',', ' ').split()
     ignore = set(str_to_dpid(dpid) for dpid in ignore)
 
-  core.registerNew(l2_learning, str_to_bool(transparent), ignore)
+  core.registerNew(l2_learning_externalStore, str_to_bool(transparent), ignore)
