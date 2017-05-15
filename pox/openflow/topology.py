@@ -459,4 +459,5 @@ class OFSyncFlowTable (EventMixin):
 
 def launch ():
   if not core.hasComponent("openflow_topology"):
-    core.register("openflow_topology", OpenFlowTopology())
+    #core.register("openflow_topology", OpenFlowTopology())
+    core.registerNew(OpenFlowTopology, 'enable', None)

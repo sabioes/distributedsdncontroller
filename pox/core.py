@@ -33,7 +33,7 @@ import os
 import signal
 
 # Import ExternalStore
-from pox.dist.distributed import ExternalStore
+from pox.dist.externalstore import ExternalStore
 
 _path = inspect.stack()[0][1]
 _ext_path = _path[0:_path.rindex(os.sep)]
@@ -421,22 +421,20 @@ class POXCore (EventMixin):
       name = obj._core_name
     self.register(name, obj)
     #call method to register on external core
-    #self.registerOnExternalCore(name, obj)
+    self.registerOnExternalCore(name, obj)
     return obj
 
   """
   Makes here the code to share Core
   """
- 
-  
   def registerOnExternalCore(self, name, component=None):
     """
     Makes the object "component" available on external controller
-
+  
     If only one argument is specified, the given argument is registered
     using its class name as the name.
     """
-    #TODO: weak references?
+    ##TODO: weak references?
     if component is None:
       component = name
       name = component.__class__.__name__
@@ -444,11 +442,14 @@ class POXCore (EventMixin):
         # Default overridden
         name = component._core_name
 
-    if name in self.components:
-      log.warn("Warning: (DataStore) Registered '%s' multipled times" % (name,))
+      if name in self.components:
+       log.warn("Warning: (DataStore) Registered '%s' multipled times" % (name,))
 
+    log.info("Registing component in distributed component")
+    log.info("Name of compoment is:"+name)
     self._es = ExternalStore()
-    self._es.sendObject("component", name, component)
+
+    #self._es.registObject(self.__class__.__name__, "component", name)
 
   def register (self, name, component=None):
     """

@@ -25,7 +25,7 @@ import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str, str_to_dpid
 from pox.lib.util import str_to_bool
 import time
-from pox.dist.distributed import ExternalStore
+from pox.dist.externalstore import ExternalStore
 
 log = core.getLogger()
 
@@ -77,7 +77,7 @@ class LearningSwitch (object):
   _es = None
   
   def __init__ (self, connection, transparent):
-    print("L2_learning_externalCore")
+    #print("L2_learning_externalCore")
     # Switch we'll be adding L2 learning switch capabilities to
     self.connection = connection
     self.transparent = transparent
@@ -105,12 +105,10 @@ class LearningSwitch (object):
 
     packet = event.parsed
 
-    #me and my self
-    self._es.storeObject(self.__class__.__name__, "packetIn", packet)
-    print(self.__class__.__name__)
-
     def flood (message = None):
       """ Floods the packet """
+      # flood packet to store
+      #self._es.storeFloodPacket(self.__class__.__name__, "packetIn", packet)
       msg = of.ofp_packet_out()
       if time.time() - self.connection.connect_time >= _flood_delay:
         # Only flood if we've been connected for a little while...
@@ -138,6 +136,9 @@ class LearningSwitch (object):
       Drops this packet and optionally installs a flow to continue
       dropping similar ones for a while
       """
+
+      #self._es.dropFloodPacket(self.__class__.__name__, "packetIn", packet)
+
       if duration is not None:
         if not isinstance(duration, tuple):
           duration = (duration,duration)

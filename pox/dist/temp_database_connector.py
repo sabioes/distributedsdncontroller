@@ -19,7 +19,7 @@ class Db_connector(object):
       
     def connect(self):
       try:
-        self._db_connection = mysql.connector.connect(user='root', password='qwerty', host='127.0.0.1', database='pox_dstl2')
+        self._db_connection = mysql.connector.connect(user='root', password='qwertz', host='127.0.0.1', database='controllerdb')
         self._db_cursor = self._db_connection.cursor()
       except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
