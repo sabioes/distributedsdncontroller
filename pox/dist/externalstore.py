@@ -137,9 +137,53 @@ class ExternalStore(object):
           #print object
           self.delete(object)
 
-    def registObject(self, pluginname, name, component):
+    def registObject(self, key, value, table):
       logging.info("Registing components.")
-      so = ObjectConverter.serializeObject(component)
-      if (len(self.existingObjects(name, component)) < 1):
-        self.insert(pluginname, name, so)
+      so = ObjectConverter.serializeObject(value)
+      if (len(self.existingObjects_v2(key, so)) < 1):
+        self.insertkeyvalue(key, so)
 
+######################### SECOND VERSION DATABASE ###################################################
+
+    def query_v2(self, param_table_name):
+      query_select = "SELECT * FROM "+ param_table_name
+      self._db_cursor = self._db_connection.cursor()
+      self._db_cursor.execute(query_select)
+      result = self._db_cursor.fetchall()
+      self._db_cursor.close()
+      return result
+
+    def insertkeyvalue(self, param_objkey, param_objvalue, param_table_name):
+      logging.info("insert Object "+param_table_name)
+      insertObject = ("INSERT INTO "+param_table_name+" (objkey, objvalue) VALUES (%s, %s)")
+      dataObject = (param_objkey, param_objvalue)
+      self._db_cursor = self._db_connection.cursor()
+      self._db_cursor.execute(insertObject, dataObject)
+      last_objectid = self._db_cursor.lastrowid
+      self._db_connection.commit()
+      # print ID da entrada na base de dados
+      print("Last ID inserted on "+param_table_name+" database:" + str(last_objectid))
+      self._db_cursor.close()
+
+    def existingObjects_v2(self, param_object_key, param_objectvalue, param_table_name=None):
+      logging.info("Confirm existing Component on store.")
+      existarray = []
+      result_query = self.query_v2(param_table_name)
+      #serialized_param_object_value = ObjectConverter.unserializeObject(param_objectvalue_serialized)
+      for (id, objkey, objvalue) in result_query:
+        unserializedkey = ObjectConverter.deserializeObject(objkey)
+        if param_object_key == unserializedkey and param_objectvalue == objvalue:
+          existarray.append(id)
+      return existarray
+
+    def registPacketIN(self, key, value, table_name):
+      logging.info("Registing PacktIN.")
+      keyserielized = ObjectConverter.serializeObject(key)
+      #if (len(self.existingObjects_v2(keyserielized, value, table_name)) < 1):
+        #self.insertkeyvalue(keyserielized, value, table_name)
+      self.insertkeyvalue(keyserielized, value, table_name)
+
+######################### DISTRIBUTION DATABASE TOPOLOGY ############################################
+    def insertTopology(self, key, name):
+      logging.info("insert topology.")
+      self.insertkeyvalue(self, key, name)

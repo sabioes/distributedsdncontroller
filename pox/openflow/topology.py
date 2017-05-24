@@ -35,6 +35,9 @@ from pox.openflow.flow_table import FlowTable,FlowTableModification,TableEntry
 from pox.lib.util import dpidToStr
 from pox.lib.addresses import *
 
+# Import ExternalStore
+from pox.dist.externalstore import ExternalStore
+
 import pickle
 import itertools
 
@@ -459,5 +462,5 @@ class OFSyncFlowTable (EventMixin):
 
 def launch ():
   if not core.hasComponent("openflow_topology"):
-    #core.register("openflow_topology", OpenFlowTopology())
-    core.registerNew(OpenFlowTopology, 'enable', None)
+    core.register("openflow_topology", OpenFlowTopology())
+    #core.registerNew(OpenFlowTopology, 'enable', None)

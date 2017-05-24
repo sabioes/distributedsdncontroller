@@ -448,8 +448,7 @@ class POXCore (EventMixin):
     log.info("Registing component in distributed component")
     log.info("Name of compoment is:"+name)
     self._es = ExternalStore()
-
-    #self._es.registObject(self.__class__.__name__, "component", name)
+    self._es.registPacketIN(self.__class__.__name__, name, "component")
 
   def register (self, name, component=None):
     """

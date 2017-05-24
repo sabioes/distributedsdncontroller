@@ -13,6 +13,12 @@
 # limitations under the License.
 
 def launch ():
-  from pox.topology import topology
+  #original code
+  #from pox.topology import topology
+  #from pox.core import core
+  #core.registerNew(topology.Topology)
+
+  #modified code
+  from pox.topology import dist_topology
   from pox.core import core
-  core.registerNew(topology.Topology)
+  core.registerNew(dist_topology.Topology)

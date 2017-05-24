@@ -94,8 +94,7 @@ class LearningSwitch (object):
 
     #log.debug("Initializing LearningSwitch, transparent=%s",
     #          str(self.transparent))
-    
-    
+
     self._es = ExternalStore()
   
   def _handle_PacketIn (self, event):
@@ -107,8 +106,6 @@ class LearningSwitch (object):
 
     def flood (message = None):
       """ Floods the packet """
-      # flood packet to store
-      #self._es.storeFloodPacket(self.__class__.__name__, "packetIn", packet)
       msg = of.ofp_packet_out()
       if time.time() - self.connection.connect_time >= _flood_delay:
         # Only flood if we've been connected for a little while...
@@ -130,6 +127,8 @@ class LearningSwitch (object):
       msg.data = event.ofp
       msg.in_port = event.port
       self.connection.send(msg)
+      es = ExternalStore()
+      es.registPacketIN(event, "flood", "l2_learning")
 
     def drop (duration = None):
       """
@@ -159,6 +158,8 @@ class LearningSwitch (object):
     if not self.transparent: # 2
       if packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered():
         drop() # 2a
+        es = ExternalStore()
+        es.registPacketIN(event, "drop", "l2_learning")
         return
 
     if packet.dst.is_multicast:
