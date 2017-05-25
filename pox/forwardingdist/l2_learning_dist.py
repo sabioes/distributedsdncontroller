@@ -25,7 +25,7 @@ import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str, str_to_dpid
 from pox.lib.util import str_to_bool
 import time
-from pox.dist.externalstore import ExternalStore
+from pox.persistence.poxpersistence import PoxPersistence
 
 log = core.getLogger()
 
@@ -74,7 +74,6 @@ class LearningSwitch (object):
      flow goes out the appopriate port
      6a) Send the packet out appropriate port
   """
-  _es = None
   
   def __init__ (self, connection, transparent):
     #print("L2_learning_externalCore")
@@ -95,12 +94,13 @@ class LearningSwitch (object):
     #log.debug("Initializing LearningSwitch, transparent=%s",
     #          str(self.transparent))
 
-    self._es = ExternalStore()
+
   
   def _handle_PacketIn (self, event):
     """
     Handle packet in messages from the switch to implement above algorithm.
     """
+    poxstore = PoxPersistence()
 
     packet = event.parsed
 
@@ -127,9 +127,8 @@ class LearningSwitch (object):
       msg.data = event.ofp
       msg.in_port = event.port
       self.connection.send(msg)
-      es = ExternalStore()
-      es.registPacketIN(event, "flood", "l2_learning")
 
+      poxstore.registPacket("flood", event, "l2_learning")
     def drop (duration = None):
       """
       Drops this packet and optionally installs a flow to continue
@@ -153,20 +152,22 @@ class LearningSwitch (object):
         msg.in_port = event.port
         self.connection.send(msg)
 
+      poxstore.registPacket("drop", event, "l2_learning")
+
     self.macToPort[packet.src] = event.port # 1
 
     if not self.transparent: # 2
       if packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered():
         drop() # 2a
-        es = ExternalStore()
-        es.registPacketIN(event, "drop", "l2_learning")
         return
 
     if packet.dst.is_multicast:
       flood() # 3a
+
     else:
       if packet.dst not in self.macToPort: # 4
         flood("Port for %s unknown -- flooding" % (packet.dst,)) # 4a
+
       else:
         port = self.macToPort[packet.dst]
         if port == event.port: # 5
@@ -185,6 +186,7 @@ class LearningSwitch (object):
         msg.actions.append(of.ofp_action_output(port = port))
         msg.data = event.ofp # 6a
         self.connection.send(msg)
+        poxstore.registPacket("forward", event, "l2_learning")
 
 
 class l2_learning_externalStore (object):

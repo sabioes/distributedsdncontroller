@@ -24,21 +24,27 @@ This uses the "learn" action so that switches become learning switches
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 import pox.openflow.nicira as nx
+from pox.persistence.poxpersistence import PoxPersistence
+
 
 
 log = core.getLogger("l2_nx_self_learning")
 
 
 def _handle_ConnectionUp (event):
+  # pox persistence module
+  poxstore = PoxPersistence
   # Set up this switch.
 
   # Turn on ability to specify table in flow_mods
   msg = nx.nx_flow_mod_table_id()
   event.connection.send(msg)
+  poxstore.registPacket("forward", event, "l2_learning")
 
   # Clear second table
   msg = nx.nx_flow_mod(command=of.OFPFC_DELETE, table_id = 1)
   event.connection.send(msg)
+  poxstore.registPacket("forward", event, "l2_learning")
 
   # Learning rule in table 0
   msg = nx.nx_flow_mod()
@@ -52,6 +58,8 @@ def _handle_ConnectionUp (event):
 
   msg.actions.append(learn)
   msg.actions.append(nx.nx_action_resubmit.resubmit_table(1))
+
+  poxstore.registPacket("forward", event, "l2_learning")
   event.connection.send(msg)
 
   # Fallthrough rule for table 1: flood
@@ -59,6 +67,7 @@ def _handle_ConnectionUp (event):
   msg.table_id = 1
   msg.priority = 1 # Low priority
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+  poxstore.registPacketIN("forward", event,  "l2_learning")
   event.connection.send(msg)
 
 

@@ -20,6 +20,8 @@ each pair of L2 addresses.
 # These next two imports are common POX convention
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
+from pox.persistence.poxpersistence import PoxPersistence
+
 
 
 # Even a simple usage of the logger is much nicer than print!
@@ -44,6 +46,8 @@ all_ports = of.OFPP_FLOOD
 def _handle_PacketIn (event):
   packet = event.parsed
 
+  #pox persistence module
+  poxstore = PoxPersistence
   # Learn the source
   table[(event.connection,packet.src)] = event.port
 
@@ -56,6 +60,8 @@ def _handle_PacketIn (event):
     msg = of.ofp_packet_out(data = event.ofp)
     msg.actions.append(of.ofp_action_output(port = all_ports))
     event.connection.send(msg)
+
+    poxstore.registPacket("forward", event, "l2_pairs")
   else:
     # Since we know the switch ports for both the source and dest
     # MACs, we can install rules for both directions.
@@ -64,6 +70,8 @@ def _handle_PacketIn (event):
     msg.match.dl_src = packet.dst
     msg.actions.append(of.ofp_action_output(port = event.port))
     event.connection.send(msg)
+
+    poxstore.registPacket("forward", event, "l2_pairs")
     
     # This is the packet that just came in -- we want to
     # install the rule and also resend the packet.
@@ -74,6 +82,7 @@ def _handle_PacketIn (event):
     msg.actions.append(of.ofp_action_output(port = dst_port))
     event.connection.send(msg)
 
+    poxstore.registPacket("forward", event, "l2_pairs")
     log.debug("Installing %s <-> %s" % (packet.src, packet.dst))
 
 

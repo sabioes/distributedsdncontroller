@@ -41,6 +41,8 @@ from pox.lib.addresses import EthAddr
 import pox.openflow.libopenflow_01 as of
 import pox.openflow.nicira as nx
 from pox.lib.revent import EventRemove
+from pox.persistence.poxpersistence import PoxPersistence
+
 
 
 # Even a simple usage of the logger is much nicer than print!
@@ -49,6 +51,8 @@ log = core.getLogger()
 
 def _handle_PacketIn (event):
   packet = event.parsed
+  # pox persistence module
+  poxstore = PoxPersistence()
 
   if event.port > of.OFPP_MAX:
     log.debug("Ignoring special port %s", event.port)
@@ -60,12 +64,16 @@ def _handle_PacketIn (event):
   msg.actions.append(nx.nx_action_resubmit.resubmit_table(table = 1))
   event.connection.send(msg)
 
+  poxstore.registPacket("forward", event, "l2_learning")
+
   # Add to destination table
   msg = nx.nx_flow_mod()
   msg.table_id = 1
   msg.match.of_eth_dst = packet.src
   msg.actions.append(of.ofp_action_output(port = event.port))
   event.connection.send(msg)
+
+  poxstore.registPacket("forward", event, "l2_learning")
 
   log.info("Learning %s on port %s of %s"
            % (packet.src, event.port, event.connection))
@@ -78,17 +86,23 @@ def _handle_ConnectionUp (event):
   # the switch is set up, the packet_ins may not be what we expect,
   # and our responses may not work!
 
+  # pox persistence module
+  poxstore = PoxPersistence()
+
   # Turn on Nicira packet_ins
   msg = nx.nx_packet_in_format()
   event.connection.send(msg)
+  poxstore.registPacketIN("forward", event,  "l2_learning")
 
   # Turn on ability to specify table in flow_mods
   msg = nx.nx_flow_mod_table_id()
   event.connection.send(msg)
+  poxstore.registPacketIN("forward", event, "l2_learning")
 
   # Clear second table
   msg = nx.nx_flow_mod(command=of.OFPFC_DELETE, table_id = 1)
   event.connection.send(msg)
+  poxstore.registPacketIN("forward", event, "l2_learning")
 
   # Fallthrough rule for table 0: flood and send to controller
   msg = nx.nx_flow_mod()
@@ -96,6 +110,7 @@ def _handle_ConnectionUp (event):
   msg.actions.append(of.ofp_action_output(port = of.OFPP_CONTROLLER))
   msg.actions.append(nx.nx_action_resubmit.resubmit_table(table = 1))
   event.connection.send(msg)
+  poxstore.registPacketIN("forward", event, "l2_learning")
 
   # Fallthrough rule for table 1: flood
   msg = nx.nx_flow_mod()
@@ -103,6 +118,7 @@ def _handle_ConnectionUp (event):
   msg.priority = 1 # Low priority
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
   event.connection.send(msg)
+  poxstore.registPacketIN("forward", event, "l2_learning")
 
   def ready (event):
     if event.ofp.xid != 0x80000000:

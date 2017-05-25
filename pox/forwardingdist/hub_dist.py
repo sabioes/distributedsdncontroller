@@ -21,7 +21,7 @@ There are actually two hubs in here -- a reactive one and a proactive one.
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
-from pox.dist.externalstore import ExternalStore
+from pox.persistence.poxpersistence import PoxPersistence
 
 log = core.getLogger()
 
@@ -34,8 +34,8 @@ def _handle_ConnectionUp (event):
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
   event.connection.send(msg)
   log.info("Hubifying %s", dpidToStr(event.dpid))
-  es = ExternalStore()
-  es.registPacketIN( event,"flood", "hubapp")
+  poxstore = PoxPersistence()
+  poxstore.registPacket("flood", event, "hubapp")
 
 def _handle_PacketIn (event):
   """
@@ -45,8 +45,8 @@ def _handle_PacketIn (event):
   msg.data = event.ofp
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
   event.connection.send(msg)
-  es = ExternalStore()
-  es.registPacketIN(event, "flood", "hubapp")
+  poxstore = PoxPersistence()
+  poxstore.registPacket("flood", event, "hubapp")
 
 
 def launch (reactive = True):

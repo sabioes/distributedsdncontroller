@@ -33,7 +33,7 @@ import os
 import signal
 
 # Import ExternalStore
-from pox.dist.externalstore import ExternalStore
+from pox.persistence.poxpersistence import ExternalStore
 
 _path = inspect.stack()[0][1]
 _ext_path = _path[0:_path.rindex(os.sep)]

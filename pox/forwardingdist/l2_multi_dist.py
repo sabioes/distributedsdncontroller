@@ -1,4 +1,3 @@
-# Copyright 2012-2013 James McCauley
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +34,8 @@ from collections import defaultdict
 from pox.openflow.discovery import Discovery
 from pox.lib.util import dpid_to_str
 import time
+from pox.persistence.poxpersistence import PoxPersistence
+
 
 log = core.getLogger()
 
@@ -227,6 +228,9 @@ class PathInstalled (Event):
 
 
 class Switch (EventMixin):
+  # pox persistence
+  poxstore = PoxPersistence()
+
   def __init__ (self):
     self.connection = None
     self.ports = None
@@ -245,6 +249,9 @@ class Switch (EventMixin):
     msg.hard_timeout = FLOW_HARD_TIMEOUT
     msg.actions.append(of.ofp_action_output(port = out_port))
     msg.buffer_id = buf
+    # pox persistence
+    poxstore = PoxPersistence()
+    poxstore.registPacket("switch", switch, "l2_learning")
     switch.connection.send(msg)
 
   def _install_path (self, p, match, packet_in=None):
@@ -254,11 +261,15 @@ class Switch (EventMixin):
       msg = of.ofp_barrier_request()
       sw.connection.send(msg)
       wp.add_xid(sw.dpid,msg.xid)
+      # pox persistence
+    poxstore = PoxPersistence()
+    poxstore.registPacket("path", p, "l2_learning")
 
   def install_path (self, dst_sw, last_port, match, event):
     """
     Attempts to install a path between this switch and some destination
     """
+    poxstore = PoxPersistence()
     p = _get_path(self, dst_sw, event.port, last_port)
     if p is None:
       log.warning("Can't get from %s to %s", match.dl_src, match.dl_dst)
@@ -296,7 +307,7 @@ class Switch (EventMixin):
         msg.actions.append(of.ofp_action_output(port = event.port))
         msg.data = e.pack()
         self.connection.send(msg)
-
+        poxstore.registPacket("path", event, "l2_learning")
       return
 
     log.debug("Installing path for %s -> %s %04x (%i hops)",
@@ -323,6 +334,8 @@ class Switch (EventMixin):
       msg.in_port = event.port
       self.connection.send(msg)
 
+      poxstore.registPacket("forward", event, "l2_learning")
+
     def drop ():
       # Kill the buffer
       if event.ofp.buffer_id is not None:
@@ -332,7 +345,11 @@ class Switch (EventMixin):
         msg.in_port = event.port
         self.connection.send(msg)
 
+        poxstore.registPacketIN("drop", event, "l2_learning")
+
     packet = event.parsed
+
+    poxstore = PoxPersistence()
 
     loc = (self, event.port) # Place we saw this ethaddr
     oldloc = mac_map.get(packet.src) # Place we last saw this ethaddr

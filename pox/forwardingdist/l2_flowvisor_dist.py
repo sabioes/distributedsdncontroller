@@ -32,7 +32,7 @@ Requires discovery.
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 import pox.openflow.spanning_tree as spanning_tree
-from pox.dist.externalstore import ExternalStore
+from pox.persistence.poxpersistence import PoxPersistence
 
 # Even a simple usage of the logger is much nicer than print!
 log = core.getLogger()
@@ -60,6 +60,7 @@ def _handle_PacketIn (event):
   Handle messages the switch has sent us because it has no
   matching rule.
   """
+  poxstore = PoxPersistence()
 
   def drop ():
     # Kill buffer on switch
@@ -68,12 +69,13 @@ def _handle_PacketIn (event):
       msg.buffer_id = event.ofp.buffer_id
       msg.in_port = event.port
       event.connection.send(msg)
+      poxstore.registPacket("drop", event, "l2_flowvisor")
 
   packet = event.parsed
 
   if packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered():
-    es = ExternalStore()
-    es.registPacketIN(event, "drop", "l2_flowvisor")
+
+    poxstore.registPacket(event, "drop", "l2_flowvisor")
     return drop()
 
   # Learn the source
@@ -109,8 +111,7 @@ def _handle_PacketIn (event):
       msg.actions.append(of.ofp_action_output(port = p))
 
     event.connection.send(msg)
-    es = ExternalStore()
-    es.registPacketIN(event, "drop", "l2_flowvisor")
+    poxstore.registPacket( "forward", event, "l2_flowvisor")
 
   else:
     # Since we know the switch ports for both the source and dest
@@ -129,6 +130,7 @@ def _handle_PacketIn (event):
     msg.match.dl_dst = packet.dst
     msg.actions.append(of.ofp_action_output(port = dst_port))
     event.connection.send(msg)
+    poxstore.registPacket( "forward", event, "l_flowvisor")
 
     #this store action taked by controller in database to others
     #controllers see modifications

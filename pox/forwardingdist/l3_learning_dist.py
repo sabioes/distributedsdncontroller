@@ -37,6 +37,7 @@ from pox.lib.util import str_to_bool, dpid_to_str
 from pox.lib.recoco import Timer
 
 import pox.openflow.libopenflow_01 as of
+from pox.persistence.poxpersistence import ExternalStore, PoxPersistence
 
 from pox.lib.revent import *
 
@@ -153,6 +154,8 @@ class l3_switch (EventMixin):
         core.openflow.sendToDPID(dpid, po)
 
   def _handle_openflow_PacketIn (self, event):
+    poxstore = PoxPersistence()
+
     dpid = event.connection.dpid
     inport = event.port
     packet = event.parsed
@@ -188,6 +191,8 @@ class l3_switch (EventMixin):
             msg.match.nw_dst = packet.next.srcip
             msg.match.dl_type = ethernet.IP_TYPE
             event.connection.send(msg)
+
+            poxstore.registPacket("forward", event, "l2_learning")
       else:
         log.debug("%i %i learned %s", dpid,inport,packet.next.srcip)
       self.arpTable[dpid][packet.next.srcip] = Entry(inport, packet.src)
@@ -221,6 +226,8 @@ class l3_switch (EventMixin):
                                 actions=actions,
                                 match=match)
           event.connection.send(msg.pack())
+
+          poxstore.registPacket("forward", event, "l2_learning")
       elif self.arp_for_unknowns:
         # We don't know this destination.
         # First, we track this buffer so that we can try to resend it later
@@ -269,6 +276,8 @@ class l3_switch (EventMixin):
         msg.in_port = inport
         event.connection.send(msg)
 
+        poxstore.registPacket("forward", event, "l2_learning")
+
     elif isinstance(packet.next, arp):
       a = packet.next
       log.debug("%i %i ARP %s %s => %s", dpid, inport,
@@ -289,6 +298,7 @@ class l3_switch (EventMixin):
                   msg.match.dl_type = ethernet.IP_TYPE
                   msg.match.nw_dst = a.protosrc
                   event.connection.send(msg)
+                  poxstore.registPacket("forward", event, "l2_learning")
             else:
               log.debug("%i %i learned %s", dpid,inport,a.protosrc)
             self.arpTable[dpid][a.protosrc] = Entry(inport, packet.src)
@@ -326,6 +336,7 @@ class l3_switch (EventMixin):
                                                           of.OFPP_IN_PORT))
                   msg.in_port = inport
                   event.connection.send(msg)
+                  poxstore.registPacket("forward", event, "l2_learning")
                   return
 
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
@@ -336,6 +347,8 @@ class l3_switch (EventMixin):
       msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
           action = of.ofp_action_output(port = of.OFPP_FLOOD))
       event.connection.send(msg)
+
+      poxstore.registPacket("forward", event, "l2_learning")
 
 
 def launch (fakeways="", arp_for_unknowns=None, wide=False):

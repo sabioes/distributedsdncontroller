@@ -24,7 +24,7 @@ class ObjectConverter(object):
       obj = pickle.loads(param_serielizedObj)
       return obj
 
-class ExternalStore(object):
+class PoxPersistence(object):
     '''
     classdocs
     '''
@@ -176,7 +176,7 @@ class ExternalStore(object):
           existarray.append(id)
       return existarray
 
-    def registPacketIN(self, key, value, table_name):
+    def registPacket(self, key, value, table_name):
       logging.info("Registing PacktIN.")
       keyserielized = ObjectConverter.serializeObject(key)
       #if (len(self.existingObjects_v2(keyserielized, value, table_name)) < 1):

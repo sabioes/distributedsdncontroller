@@ -39,6 +39,8 @@ from pox.proto.dhcpd import DHCPLease, DHCPD
 from collections import defaultdict
 from pox.openflow.discovery import Discovery
 import time
+from pox.persistence.poxpersistence import PoxPersistence
+
 
 log = core.getLogger("f.t_p")
 
