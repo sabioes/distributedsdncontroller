@@ -187,7 +187,7 @@ class LearningSwitch (object):
         msg.data = event.ofp # 6a
         self.connection.send(msg)
         log.info("###################################")
-        log.info("##-   %s    -##", event.connection.ID)
+        log.info("## ID:%s ->MAC: %s ##", event.connection.ID, event.connection.eth_addr)
         log.info("###################################")
         #poxstore.registPacket("forward", event, "l2_learning")
 
@@ -213,7 +213,7 @@ class l2_learning_externalStore (object):
       return
     log.debug("Connection %s" % (event.connection,))
     log.info("###################################")
-    log.info("##-   %s    -##", event.connection.ID)
+    log.info("## ID:%s ->MAC: %s ##", event.connection.ID, event.connection.eth_addr)
     log.info("###################################")
     LearningSwitch(event.connection, self.transparent)
 
