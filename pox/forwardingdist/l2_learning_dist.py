@@ -190,7 +190,7 @@ class LearningSwitch (object):
         log.info("## ID:%s ->MAC: %s ##", event.connection.dpid, event.connection.eth_addr)
         log.info("###################################")
         #poxstore.registPacket("forward", event, "l2_learning")
-
+        #poxstor
 
 class l2_learning_externalStore (object):
   """
