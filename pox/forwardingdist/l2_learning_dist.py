@@ -74,7 +74,7 @@ class LearningSwitch (object):
      flow goes out the appopriate port
      6a) Send the packet out appropriate port
   """
-  
+
   def __init__ (self, connection, transparent):
     #print("L2_learning_externalCore")
     # Switch we'll be adding L2 learning switch capabilities to
@@ -95,12 +95,12 @@ class LearningSwitch (object):
     #          str(self.transparent))
 
 
-  
+
   def _handle_PacketIn (self, event):
     """
     Handle packet in messages from the switch to implement above algorithm.
     """
-    poxstore = PoxPersistence()
+    #poxstore = PoxPersistence()
 
     packet = event.parsed
 
@@ -128,7 +128,7 @@ class LearningSwitch (object):
       msg.in_port = event.port
       self.connection.send(msg)
 
-      poxstore.registPacket("flood", event, "l2_learning")
+      #poxstore.registPacket("flood", event, "l2_learning")
     def drop (duration = None):
       """
       Drops this packet and optionally installs a flow to continue
@@ -152,7 +152,7 @@ class LearningSwitch (object):
         msg.in_port = event.port
         self.connection.send(msg)
 
-      poxstore.registPacket("drop", event, "l2_learning")
+      #poxstore.registPacket("drop", event, "l2_learning")
 
     self.macToPort[packet.src] = event.port # 1
 
@@ -186,7 +186,10 @@ class LearningSwitch (object):
         msg.actions.append(of.ofp_action_output(port = port))
         msg.data = event.ofp # 6a
         self.connection.send(msg)
-        poxstore.registPacket("forward", event, "l2_learning")
+        log.info("###################################")
+        log.info("##-   %s    -##", event.connection.ID)
+        log.info("###################################")
+        #poxstore.registPacket("forward", event, "l2_learning")
 
 
 class l2_learning_externalStore (object):
@@ -209,6 +212,9 @@ class l2_learning_externalStore (object):
       log.debug("Ignoring connection %s" % (event.connection,))
       return
     log.debug("Connection %s" % (event.connection,))
+    log.info("###################################")
+    log.info("##-   %s    -##", event.connection.ID)
+    log.info("###################################")
     LearningSwitch(event.connection, self.transparent)
 
 

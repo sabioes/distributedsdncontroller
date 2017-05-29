@@ -33,7 +33,7 @@ import os
 import signal
 
 # Import ExternalStore
-from pox.persistence.poxpersistence import ExternalStore
+from pox.persistence.poxpersistence import PoxPersistence
 
 _path = inspect.stack()[0][1]
 _ext_path = _path[0:_path.rindex(os.sep)]
@@ -447,8 +447,8 @@ class POXCore (EventMixin):
 
     log.info("Registing component in distributed component")
     log.info("Name of compoment is:"+name)
-    self._es = ExternalStore()
-    self._es.registPacketIN(self.__class__.__name__, name, "component")
+    self._es = PoxPersistence()
+    self._es.registPacket(self.__class__.__name__, name, "component")
 
   def register (self, name, component=None):
     """

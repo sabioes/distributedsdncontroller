@@ -34,8 +34,8 @@ def _handle_ConnectionUp (event):
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
   event.connection.send(msg)
   log.info("Hubifying %s", dpidToStr(event.dpid))
-  poxstore = PoxPersistence()
-  poxstore.registPacket("flood", event, "hubapp")
+  #poxstore = PoxPersistence()
+  #poxstore.registPacket("flood", event, "hubapp")
 
 def _handle_PacketIn (event):
   """
@@ -45,9 +45,8 @@ def _handle_PacketIn (event):
   msg.data = event.ofp
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
   event.connection.send(msg)
-  poxstore = PoxPersistence()
-  poxstore.registPacket("flood", event, "hubapp")
-
+  #poxstore = PoxPersistence()
+  #poxstore.registPacket("flood", event, "hubapp")
 
 def launch (reactive = True):
   if reactive:
