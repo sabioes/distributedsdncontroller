@@ -100,8 +100,6 @@ class LearningSwitch (object):
     """
     Handle packet in messages from the switch to implement above algorithm.
     """
-    #poxstore = PoxPersistence()
-
     packet = event.parsed
 
     def flood (message = None):
@@ -128,7 +126,6 @@ class LearningSwitch (object):
       msg.in_port = event.port
       self.connection.send(msg)
 
-      #poxstore.registPacket("flood", event, "l2_learning")
     def drop (duration = None):
       """
       Drops this packet and optionally installs a flow to continue
@@ -151,8 +148,6 @@ class LearningSwitch (object):
         msg.buffer_id = event.ofp.buffer_id
         msg.in_port = event.port
         self.connection.send(msg)
-
-      #poxstore.registPacket("drop", event, "l2_learning")
 
     self.macToPort[packet.src] = event.port # 1
 

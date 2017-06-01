@@ -19,6 +19,6 @@ def launch ():
   #core.registerNew(topology.Topology)
 
   #modified code
-  from pox.topology import dist_topology
+  from pox.topology import topology
   from pox.core import core
-  core.registerNew(dist_topology.Topology)
+  core.registerNew(topology.Topology)

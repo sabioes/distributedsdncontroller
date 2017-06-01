@@ -22,33 +22,53 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
 from pox.persistence.poxpersistence import PoxPersistence
+from pox.persistence.poxpersistence import ObjectConverter
 
 log = core.getLogger()
-
+poxstore = PoxPersistence()
 
 def _handle_ConnectionUp (event):
   """
   Be a proactive hub by telling every connected switch to flood all packets
   """
-  msg = of.ofp_flow_mod()
-  msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
-  event.connection.send(msg)
+
+  store_query = poxstore.selectbyKey(event.connection.dpid, 1,"hubapp")
+
+  if(len(store_query)==0):
+    msg = ObjectConverter.deserializeObject(store_query[0][2])
+    event.connection.send(msg)
+  else:
+    msg = of.ofp_flow_mod()
+    msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+    event.connection.send(msg)
+    poxstore.registPacket(event.connection.dpid, msg, "hubapp")
+
   log.info("Hubifying %s", dpidToStr(event.dpid))
-  #poxstore = PoxPersistence()
-  #poxstore.registPacket("flood", event, "hubapp")
+  log.info("###################################")
+  log.info("## dpid:%s ->MAC: %s ##", event.connection.dpid, event.connection.eth_addr)
+  log.info("###################################")
 
 def _handle_PacketIn (event):
   """
   Be a reactive hub by flooding every incoming packet
   """
-  msg = of.ofp_packet_out()
-  msg.data = event.ofp
-  msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
-  event.connection.send(msg)
-  #poxstore = PoxPersistence()
-  #poxstore.registPacket("flood", event, "hubapp")
+  store_query = poxstore.selectbyKey(event.connection.dpid, 1, "hubapp")
 
-def launch (reactive = True):
+  if (len(store_query) != 0):
+    msg = ObjectConverter.deserializeObject(store_query[0][2])
+    event.connection.send(msg)
+  else:
+    msg = of.ofp_packet_out()
+    msg.data = event.ofp
+    msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+    event.connection.send(msg)
+    poxstore.registPacket(event.connection.dpid, msg, "hubapp")
+
+  log.info("###################################")
+  log.info("## dpid:%s ->MAC: %s ##", event.connection.dpid, event.connection.eth_addr)
+  log.info("###################################")
+
+def launch (reactive = False):
   if reactive:
     core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
     log.info("Reactive hub running.")

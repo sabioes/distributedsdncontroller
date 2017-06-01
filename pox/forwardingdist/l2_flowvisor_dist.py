@@ -69,7 +69,7 @@ def _handle_PacketIn (event):
       msg.buffer_id = event.ofp.buffer_id
       msg.in_port = event.port
       event.connection.send(msg)
-      poxstore.registPacket("drop", event, "l2_flowvisor")
+
 
   packet = event.parsed
 

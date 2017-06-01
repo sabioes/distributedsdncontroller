@@ -26,9 +26,11 @@ from pox.lib.revent import *
 from pox.core import core
 from pox.lib.addresses import *
 import traceback
+import dill
 
 import pickle
-
+from pox.persistence.poxpersistence import PoxPersistence
+from pox.persistence.poxpersistence import ObjectConverter
 
 class EntityEvent (Event):
   def __init__ (self, entity):
@@ -190,6 +192,9 @@ class Topology (EventMixin):
     self._entities = {}
     self.name = name
     self.log = core.getLogger(name)
+    self.poxstore = PoxPersistence()
+    self.id2entity = {}
+    #self.id2entity = self.serialize()
 
     # If a client registers a handler for these events after they have
     # already occurred, we promise to re-issue them to the newly joined
@@ -197,6 +202,15 @@ class Topology (EventMixin):
     self._event_promises = {
       SwitchJoin : self._fulfill_SwitchJoin_promise
     }
+
+  def loadEntityPersistence(self):
+    so_entities = self.poxstore.query("topology")
+    for so_entity in so_entities:
+      local_entity = ObjectConverter.deserializeObject(so_entity)
+      self.addEntity(local_entity)
+
+  def getAllEntity(self):
+    return self._entities
 
   def getEntityByID (self, ID, fail=False):
     """
@@ -208,7 +222,11 @@ class Topology (EventMixin):
     else:
       return self._entities.get(ID, None)
 
+  def removeEntityPersistence (self, entity):
+    self.poxstore.deleteObject(entity.id, "topology")
+
   def removeEntity (self, entity):
+
     del self._entities[entity.id]
     self.log.info(str(entity) + " left")
     if isinstance(entity, Switch):
@@ -218,7 +236,26 @@ class Topology (EventMixin):
     else:
       self.raiseEvent(EntityLeave, entity)
 
+    # Same code code to implement persistence
+    # self.removeEntityPersistence(entity)
+
+  def addEntityPersistence (self, entity):
+
+    #print self._entities
+
+    #self.id2entity = self.serialize()
+    print self.id2entity
+    #b_ = dill.dumps(entity)
+
+    #so_entity = ObjectConverter.serializeObject(entity)
+
+    #self.poxstore.registObject(entity.id, b_, "topology")
+
   def addEntity (self, entity):
+
+    #ents = self.serialize();
+    #print ents
+
     """ Will raise an exception if entity.id already exists """
     if entity.id in self._entities:
       raise RuntimeError("Entity exists")
@@ -230,6 +267,9 @@ class Topology (EventMixin):
       self.raiseEvent(HostJoin, entity)
     else:
       self.raiseEvent(EntityJoin, entity)
+
+    # Same code code to implement persistence
+    self.addEntityPersistence(entity)
 
   def getEntitiesOfType (self, t=Entity, subtypes=True):
     if subtypes is False:
@@ -261,17 +301,18 @@ class Topology (EventMixin):
       EventMixin.raiseEvent(self, Update(event))
     return rv
 
-  def serialize (self):
+  def serialize(self):
     """
     Picklize our current entities.
-
     Returns a hash: { id -> pickled entitiy }
     """
     id2entity = {}
     for id in self._entities:
       entity = self._entities[id]
       id2entity[id] = entity.serialize()
+
     return id2entity
+
 
   def deserializeAndMerge (self, id2entity):
     """
