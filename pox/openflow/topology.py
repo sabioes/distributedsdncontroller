@@ -49,13 +49,14 @@ from pox.persistence.poxpersistence import ObjectConverter
 import pickle
 import dill
 import itertools
-
+import json
 # After a switch disconnects, it has this many seconds to reconnect in
 # order to reactivate the same OpenFlowSwitch object.  After this, if
 # it reconnects, it will be a new switch object.
 RECONNECT_TIMEOUT = 30
 
 log = core.getLogger()
+import JsonConverter
 
 class OpenFlowTopology (object):
   """
@@ -65,15 +66,6 @@ class OpenFlowTopology (object):
 
   def __init__ (self):
     core.listen_to_dependencies(self, ['topology'], short_attrs=True)
-
-    #t1 = threading.Thread(target=self.newme, args=("name-1", self.topology))
-    #thread.start_new_thread(self.newme, ("Thread-1", self.topology))
-
-  #def newme(self, threadName, topol):
-  #  time.sleep(10)
-    #soevent = self.topology.serialize()
-  #  print "Thread {} say hello world!!!".format(threadName)
-  # self.topology.deserializeAndMerge(self.serializedtopology)
 
   def _handle_openflow_discovery_LinkEvent (self, event):
     """
@@ -94,10 +86,19 @@ class OpenFlowTopology (object):
       sw2.ports[link.port2].entities.discard(sw1)
 
   def _handle_openflow_ConnectionUp (self, event):
-    se = {}
-    #Timer(.2, self.topology.serialize(), recurring=False)
-    #se = self.topology.serialize()
-    #print se
+    se = JsonConverter.Object()
+    se.id = "dummy1"
+    se.s = JsonConverter.Object()
+    se.s.id = event.dpid
+    se.s.connection = JsonConverter.Object()
+    se.s.connection._eventMixin_events = JsonConverter.Object()
+    se.s.connection._eventMixin_events[0]= event.connection._eventMixin_events[0]
+    #se.s.connection = event.connection
+    #se.b.aa = "dumm2a"
+    #se.b.ab = "dumm2b"
+
+    print se.toJSON()
+
 
     sw = self.topology.getEntityByID(event.dpid)
     add = False
@@ -108,17 +109,15 @@ class OpenFlowTopology (object):
       if sw._connection is not None:
         log.warn("Switch %s connected, but... it's already connected!" %
                  (dpidToStr(event.dpid),))
-    econ = event.connection
-    sevent = pickle.dumps(econ)
+    #econ = event.connection
+    #sevent = pickle.dumps(econ)
+
 
     sw._setConnection(event.connection, event.ofp)
+
     log.info("Switch " + dpidToStr(event.dpid) + " connected")
-    print "_______________DPID_______________"
-    print event.dpid
-    print "_______________CONNECTION_______________"
-    print pickle.dumps(sevent)
-    print "_______________OFP_______________"
-    print event.ofp
+    print "_______________SWITCH SERIALIZED_______________"
+
 
     if add:
       self.topology.addEntity(sw)
