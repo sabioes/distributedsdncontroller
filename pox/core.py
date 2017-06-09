@@ -421,7 +421,7 @@ class POXCore (EventMixin):
       name = obj._core_name
     self.register(name, obj)
     #call method to register on external core
-    self.registerOnExternalCore(name, obj)
+    #self.registerOnExternalCore(name, obj)
     return obj
 
   """
@@ -550,6 +550,7 @@ class POXCore (EventMixin):
 
   def listen_to_dependencies (self, sink, components=None, attrs=True,
                               short_attrs=False, listen_args={}):
+    # type: (object, object, object, object, object) -> object
     """
     Look through *sink* for handlers named like _handle_component_event.
     Use that to build a list of components, and append any components

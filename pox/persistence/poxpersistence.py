@@ -16,7 +16,7 @@ from mysql.connector import errorcode, Error
 class ObjectConverter(object):
     @staticmethod
     def serializeObject(param_obj):
-      return pickle.dumps(param_obj)
+      return pickle.dumps(param_obj, protocol=pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
     def deserializeObject(param_serielizedObj):
@@ -83,27 +83,47 @@ class PoxPersistence(object):
       result = self._db_cursor.fetchall()
       self._db_cursor.close()
       return result
-
-    ##################################### SELECT BY NAME ############################################
-    def selectbyKey(self, param_key, param_limit, param_table_name):
-      query_select = "SELECT * FROM "+param_table_name+" WHERE objkey="+str(param_key)+" LIMIT "+str(param_limit)
+    def querybyObjkey(self, param_objkey, param_table_name):
+      query_select = 'SELECT * FROM '+ param_table_name+' WHERE objkey = "'+param_objkey+'"'
       self._db_cursor = self._db_connection.cursor()
       self._db_cursor.execute(query_select)
       result = self._db_cursor.fetchall()
       self._db_cursor.close()
       return result
 
+    ##################################### SELECT BY NAME ############################################
+    # def selectbyKey(self, param_key, param_limit, param_table_name):
+    #   query_select = "SELECT * FROM "+param_table_name+" WHERE objkey="+str(param_key)+" LIMIT "+str(param_limit)
+    #   self._db_cursor = self._db_connection.cursor()
+    #   self._db_cursor.execute(query_select)
+    #   result = self._db_cursor.fetchall()
+    #   self._db_cursor.close()
+    #   return result
+
     def insertkeyvalue(self, param_objkey, param_objvalue, param_table_name):
       logging.info("insert Object "+param_table_name)
-      insertObject = ("INSERT INTO "+param_table_name+" (objkey, objvalue) VALUES (%s, %s)")
-      dataObject = (param_objkey, param_objvalue)
+      r = self.existskey(param_objkey, param_table_name)
+      if (len(r) >=1):
+        operationObject = ("UPDATE "+param_table_name+" SET objvalue = "+param_objvalue+" WHERE objkey = "+param_objkey)
+      else:
+        operationObject = ("INSERT INTO "+param_table_name+" (objkey, objvalue) VALUES ("+param_objkey+", "+param_objvalue+")")
+
       self._db_cursor = self._db_connection.cursor()
-      self._db_cursor.execute(insertObject, dataObject)
+      self._db_cursor.execute(operationObject)
       last_objectid = self._db_cursor.lastrowid
       self._db_connection.commit()
       # print ID da entrada na base de dados
       print("Last ID inserted on "+param_table_name+" database:" + str(last_objectid))
       self._db_cursor.close()
+
+    def existskey(self, param_objkey, param_table):
+      logging.info("Check if key exist.")
+      query = "SELECT COUNT(1) FROM "+param_table+" WHERE objkey = " + param_objkey
+      self._db_cursor = self._db_connection.cursor()
+      self._db_cursor.execute(query)
+      result = self._db_cursor.fetchall()
+      self._db_cursor.close()
+      return result
 
     def existingObjects(self, param_object_key, param_objectvalue, param_table_name):
       logging.info("Confirm existing Component on store.")
@@ -116,6 +136,7 @@ class PoxPersistence(object):
           existarray.append(id)
       return existarray
 
+######################### DISTRIBUTION DATABASE FORWARDING ############################################
     def registPacket(self, key, value, table_name):
       logging.info("Registing PacktIN.")
       valueserielized = ObjectConverter.serializeObject(value)
@@ -128,9 +149,23 @@ class PoxPersistence(object):
 
 
 ######################### DISTRIBUTION DATABASE TOPOLOGY ############################################
-    def registObject(self, para_key, param_name, param_topology):
+    def registEntity(self, para_key, param_connection, param_ofp):
       logging.info("Persistence regist Object.")
-      self.insertkeyvalue(self, para_key, param_name, param_topology)
+      param_table_name = "topology"
+      if (len(self.existingkey(para_key, param_table_name)) < 1):
+        self.insertintotopology( para_key, param_connection, param_ofp)
+
+    def insertintotopology(self, param_objkey, param_connection, param_ofp):
+      logging.info("insert Object topology")
+      insertObject = ("INSERT INTO topology (objkey, objconnection, objofp) VALUES (%s, %s, %s)")
+      dataObject = (param_objkey, param_connection, param_ofp)
+      self._db_cursor = self._db_connection.cursor()
+      self._db_cursor.execute(insertObject, dataObject)
+      last_objectid = self._db_cursor.lastrowid
+      self._db_connection.commit()
+      # print ID da entrada na base de dados
+      print("Last ID inserted on topology database:" + str(last_objectid))
+      self._db_cursor.close()
 
     def deleteObject(self, param_key, param_table):
       query = "DELETE FORM {} WHERE id = {}".format(param_table, param_key)

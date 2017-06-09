@@ -29,9 +29,14 @@ Requires discovery.
 """
 
 # These next two imports are common POX convention
+import json
+import pickle
+
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 import pox.openflow.spanning_tree as spanning_tree
+from pox.persistence.poxpersistence import *
+from json import JSONEncoder
 
 # Even a simple usage of the logger is much nicer than print!
 log = core.getLogger()
@@ -40,9 +45,15 @@ log = core.getLogger()
 # This table maps (switch,MAC-addr) pairs to the port on 'switch' at
 # which we last saw a packet *from* 'MAC-addr'.
 # (In this case, we use a Connection object for the switch.)
+
+poxpersist = PoxPersistence()
+
+class MyEncoder(JSONEncoder):
+  def default(self, o):
+    return o.__dict__
+
+
 table = {}
-
-
 # A spanning tree to be used for flooding
 tree = {}
 
@@ -73,7 +84,7 @@ def _handle_PacketIn (event):
   if packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered():
      return drop()
 
-  # Learn the source
+  # Learn the sources
   table[(event.connection,packet.src)] = event.port
 
   if not packet.dst.is_multicast:

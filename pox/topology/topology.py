@@ -22,15 +22,14 @@ Note that this means that you often want to invoke something like:
    $ ./pox.py topology openflow.discovery openflow.topology
 """
 
-from pox.lib.revent import *
+import pickle
+import traceback
+
 from pox.core import core
 from pox.lib.addresses import *
-import traceback
-import dill
-
-import pickle
+from pox.lib.revent import *
 from pox.persistence.poxpersistence import PoxPersistence
-from pox.persistence.poxpersistence import ObjectConverter
+
 
 class EntityEvent (Event):
   def __init__ (self, entity):
@@ -193,8 +192,7 @@ class Topology (EventMixin):
     self.name = name
     self.log = core.getLogger(name)
     self.poxstore = PoxPersistence()
-    self.id2entity = {}
-    #self.id2entity = self.serialize()
+
 
     # If a client registers a handler for these events after they have
     # already occurred, we promise to re-issue them to the newly joined
@@ -202,12 +200,6 @@ class Topology (EventMixin):
     self._event_promises = {
       SwitchJoin : self._fulfill_SwitchJoin_promise
     }
-
-  def loadEntityPersistence(self):
-    so_entities = self.poxstore.query("topology")
-    for so_entity in so_entities:
-      local_entity = ObjectConverter.deserializeObject(so_entity)
-      self.addEntity(local_entity)
 
   def getAllEntity(self):
     return self._entities
@@ -222,8 +214,8 @@ class Topology (EventMixin):
     else:
       return self._entities.get(ID, None)
 
-  def removeEntityPersistence (self, entity):
-    self.poxstore.deleteObject(entity.id, "topology")
+  #def removeEntityPersistence (self, entity):
+  #  self.poxstore.deleteObject(entity.dpid, "topology")
 
   def removeEntity (self, entity):
 
@@ -236,26 +228,7 @@ class Topology (EventMixin):
     else:
       self.raiseEvent(EntityLeave, entity)
 
-    # Same code code to implement persistence
-    # self.removeEntityPersistence(entity)
-
-  def addEntityPersistence (self, entity):
-
-    #print self._entities
-
-    #self.id2entity = self.serialize()
-    print self.id2entity
-    #b_ = dill.dumps(entity)
-
-    #so_entity = ObjectConverter.serializeObject(entity)
-
-    #self.poxstore.registObject(entity.id, b_, "topology")
-
   def addEntity (self, entity):
-
-    #ents = self.serialize();
-    #print ents
-
     """ Will raise an exception if entity.id already exists """
     if entity.id in self._entities:
       raise RuntimeError("Entity exists")
@@ -268,8 +241,17 @@ class Topology (EventMixin):
     else:
       self.raiseEvent(EntityJoin, entity)
 
-    # Same code code to implement persistence
-    self.addEntityPersistence(entity)
+  def setEntity(self, entity):
+    if entity.id in self._entities:
+      raise RuntimeError("Entity exists")
+    self._entities[entity.id] = entity
+    self.log.debug(str(entity) + " (id: " + str(entity.id) + ") joined")
+    if isinstance(entity, Switch):
+      self.raiseEvent(SwitchJoin, entity)
+    elif isinstance(entity, Host):
+      self.raiseEvent(HostJoin, entity)
+    else:
+      self.raiseEvent(EntityJoin, entity)
 
   def getEntitiesOfType (self, t=Entity, subtypes=True):
     if subtypes is False:
@@ -311,6 +293,7 @@ class Topology (EventMixin):
       entity = self._entities[id]
       id2entity[id] = entity.serialize()
 
+    id = 0
     return id2entity
 
 

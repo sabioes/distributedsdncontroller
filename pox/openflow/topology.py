@@ -24,10 +24,10 @@ uses them to populate and manipulate Topology.
 
 #import itertools
 
-#from pox.lib.revent import *
-#import libopenflow_01 as of
+
 from pox.openflow import *
 #from pox.core import core
+from pox.persistence.topologyPersistence import OpenflowTopologyPersistence
 from pox.topology.topology import *
 from pox.openflow.discovery import *
 from pox.openflow.libopenflow_01 import xid_generator
@@ -35,37 +35,49 @@ from pox.openflow.flow_table import FlowTable,FlowTableModification,TableEntry
 from pox.lib.util import dpidToStr
 from pox.lib.addresses import *
 
-
-## imports test
-import dill
-import threading
-import thread
-
-from pox.persistence.poxpersistence import ObjectConverter
-
-# Import ExternalStore
-#from pox.dist.externalstore import ExternalStore
-
 import pickle
-import dill
-import itertools
-import json
+
 # After a switch disconnects, it has this many seconds to reconnect in
 # order to reactivate the same OpenFlowSwitch object.  After this, if
 # it reconnects, it will be a new switch object.
 RECONNECT_TIMEOUT = 30
 
 log = core.getLogger()
-import JsonConverter
 
 class OpenFlowTopology (object):
   """
   Listens to various OpenFlow-specific events and uses those to manipulate
   Topology accordingly.
   """
+  _topologyPersistence = OpenflowTopologyPersistence()
 
   def __init__ (self):
     core.listen_to_dependencies(self, ['topology'], short_attrs=True)
+    self.initSwithes()
+    self.initLinks()
+
+  def initSwithes(self):
+    list = self._topologyPersistence.getAllSwitchs()
+
+    if list is None:
+      pass
+    else:
+      for switch in list:
+        sw = OpenFlowSwitch(switch.dpid)
+        self.topology.addEntity(sw)
+
+  def initLinks(self):
+    list = self._topologyPersistence.getAllLinks()
+
+    if list is None:
+      pass
+    else:
+      for link in list:
+        sw1 = self.topology.getEntityByID(link.entity1_dpid1)
+        sw2 = self.topology.getEntityByID(link.entity2_dpid2)
+
+        sw1.ports[link.entity1_port].addEntity(sw2, single=True)
+        sw2.ports[link.entity2_port].addEntity(sw1, single=True)
 
   def _handle_openflow_discovery_LinkEvent (self, event):
     """
@@ -73,7 +85,10 @@ class OpenFlowTopology (object):
     LinkEvents for discovered switches. It's our job to take these
     LinkEvents and update pox.topology.
     """
+    #ser = self.topology.serialize()
+
     link = event.link
+
     sw1 = self.topology.getEntityByID(link.dpid1)
     sw2 = self.topology.getEntityByID(link.dpid2)
     if sw1 is None or sw2 is None: return
@@ -81,24 +96,13 @@ class OpenFlowTopology (object):
     if event.added:
       sw1.ports[link.port1].addEntity(sw2, single=True)
       sw2.ports[link.port2].addEntity(sw1, single=True)
+      self._topologyPersistence.storeLink(link)
     elif event.removed:
       sw1.ports[link.port1].entities.discard(sw2)
       sw2.ports[link.port2].entities.discard(sw1)
+      #self._topologyPersistence.removeLink(link)
 
   def _handle_openflow_ConnectionUp (self, event):
-    se = JsonConverter.Object()
-    se.id = "dummy1"
-    se.s = JsonConverter.Object()
-    se.s.id = event.dpid
-    se.s.connection = JsonConverter.Object()
-    se.s.connection._eventMixin_events = JsonConverter.Object()
-    se.s.connection._eventMixin_events[0]= event.connection._eventMixin_events[0]
-    #se.s.connection = event.connection
-    #se.b.aa = "dumm2a"
-    #se.b.ab = "dumm2b"
-
-    print se.toJSON()
-
 
     sw = self.topology.getEntityByID(event.dpid)
     add = False
@@ -109,23 +113,14 @@ class OpenFlowTopology (object):
       if sw._connection is not None:
         log.warn("Switch %s connected, but... it's already connected!" %
                  (dpidToStr(event.dpid),))
-    #econ = event.connection
-    #sevent = pickle.dumps(econ)
-
 
     sw._setConnection(event.connection, event.ofp)
-
-    log.info("Switch " + dpidToStr(event.dpid) + " connected")
-    print "_______________SWITCH SERIALIZED_______________"
-
 
     if add:
       self.topology.addEntity(sw)
       sw.raiseEvent(SwitchJoin, sw)
-
-    #print self.topology.serialize()
-      self.topology.getAllEntity()
-
+      self._topologyPersistence.storeSwitch(sw)
+    #### save entity with DPID in database storage
 
 
   def _handle_openflow_ConnectionDown (self, event):
@@ -139,6 +134,8 @@ class OpenFlowTopology (object):
                  (dpidToStr(event.dpid),))
       sw._connection = None
       log.info("Switch " + str(event.dpid) + " disconnected")
+
+    self._topologyPersistence.deleteEntity(sw);
 
 
 class OpenFlowPort (Port):
@@ -501,6 +498,7 @@ def launch ():
   if not core.hasComponent("openflow_topology"):
     core.register("openflow_topology", OpenFlowTopology())
     #core.registerNew(OpenFlowTopology, 'enable', None)
+
 
 
 

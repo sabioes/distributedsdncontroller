@@ -26,6 +26,7 @@ from pox.lib.util import dpid_to_str, str_to_dpid
 from pox.lib.util import str_to_bool
 import time
 
+from pox.topology.topology import Topology
 log = core.getLogger()
 
 # We don't want to flood immediately when a switch connects.
