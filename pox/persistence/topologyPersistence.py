@@ -105,7 +105,7 @@ class OpenflowTopologyPersistence():
     self._db_cursor.close()
 
   def insertSwitchEntities(self, param_id, param_port):
-    insert_query = ("INSERT INTO switchesEntities(param_id, param_port)"
+    insert_query = ("INSERT INTO switchesentities(id, id_port)"
                     "VALUES(" + str(param_id) + "," + str(param_port) + ")")
     self._db_cursor = self._driverConnection.getCursor()
     self._db_cursor.execute(insert_query)

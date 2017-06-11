@@ -11,29 +11,26 @@ class DatabaseInitiator():
     '''
     self._driverConnection = DriverConnection()
 
-  def createDatabase(self):
-    createdatabase ='''CREATE DATABASE IF NOT EXISTS controllerdb;'''
-    self._db_cursor = self._driverConnection.getCursor()
-    self._db_cursor.execute(createdatabase)
-    result = self._db_cursor.fetchall()
-    self._db_cursor.close()
-
   def createTopologyTables(self):
-    dropalltables='''DROP TABLE IF EXISTS controllerdb.link;
-                            DROP TABLE IF EXISTS controllerdb.switchentities;
-                            DROP TABLE IF EXISTS controllerdb.port;
-                            DROP TABLE IF EXISTS controllerdb.switch;'''
+    try:
+      dropalltables='''DROP TABLE `controllerdb`.`link`;'''
 
-    self._db_cursor = self._driverConnection.getCursor()
-    self._db_cursor.execute(dropalltables)
-    result = self._db_cursor.fetchall()
+      self._db_cursor = self._driverConnection.getCursor()
+      self._db_cursor.execute(dropalltables, multi=True)
+      self._driverConnection.commit()
+      self._db_cursor.close()
 
-    createalltables='''CREATE TABLE IF NOT EXISTS controllerdb.switch(
+    except self._driverConnection.connector.Error as err:
+      print("Failed Droping tables: {}".format(err))
+      exit(1)
+
+    try:
+      createalltables='''CREATE TABLE IF NOT EXISTS controllerdb.switch(
                             dpid INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
                             value TEXT
                         )ENGINE=InnoDB;
                             
-                        CREATE TABLE IF NOT EXISTS controllerdb.link(
+                        CREATE TABLE IF NOT EXISTS `controllerdb`.`link`(
                           id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
                             entity1_port INT,
                             entity1_dpid INT,
@@ -56,6 +53,10 @@ class DatabaseInitiator():
                             FOREIGN KEY (id_port) REFERENCES controllerdb.port(id_port)
                         )ENGINE=InnoDB; '''
 
-    self._db_cursor = self._driverConnection.getCursor()
-    self._db_cursor.execute(createalltables)
-    result = self._db_cursor.fetchall()
+      self._db_cursor = self._driverConnection.getCursor()
+      self._db_cursor.execute(createalltables, multi=True)
+      self._db_cursor.close()
+
+    except self._driverConnection.connector.Error as err:
+      print("Failed creating tables: {}".format(err))
+      exit(1)

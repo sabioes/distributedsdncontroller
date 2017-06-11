@@ -28,6 +28,7 @@ uses them to populate and manipulate Topology.
 from pox.openflow import *
 #from pox.core import core
 from pox.persistence.topologyPersistence import OpenflowTopologyPersistence
+from pox.persistence.database import DatabaseInitiator
 from pox.topology.topology import *
 from pox.openflow.discovery import *
 from pox.openflow.libopenflow_01 import xid_generator
@@ -53,6 +54,10 @@ class OpenFlowTopology (object):
 
   def __init__ (self):
     core.listen_to_dependencies(self, ['topology'], short_attrs=True)
+    #database initiator drop if exists and create database and your tables
+    databaseinitiator = DatabaseInitiator()
+    databaseinitiator.createTopologyTables()
+
     self.initSwithes()
     self.initLinks()
 
