@@ -40,7 +40,7 @@ class PoxPersistence(object):
 
     def connect(self):
       try:
-        self._db_connection = mysql.connector.connect(user='root', password='qwertz', host='127.0.0.1', database='controllerdb')
+        self._db_connection = mysql.connector.connect(user='root', password='qwertz', host='192.168.182.1', database='controllerdb')
 
       except Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
