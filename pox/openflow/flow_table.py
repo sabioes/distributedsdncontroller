@@ -25,7 +25,7 @@ import math
 # FlowTable Entries:
 #   match - ofp_match (13-tuple)
 #   counters - hash from name -> count. May be stale
-#   actions - ordered list of ofp_action_*s to apply for matching packets
+  #   actions - ordered list of ofp_action_*s to apply for matching packets
 class TableEntry (object):
   """
   Models a flow table entry, with a match, actions, and options/flags/counters.

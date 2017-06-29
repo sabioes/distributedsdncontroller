@@ -12,35 +12,45 @@ class OpenflowTopologyPersistence():
     self._driverConnection = DriverConnection()
 
   def storeSwitch(self, entity):
-    print "a guardar entity"
+    print "storing entity"
     print entity.dpid
     last_switch = self.insertSwitch(entity.dpid)
     for port in entity.ports:
       print "Switch id:"+str(entity.dpid)+ ":port"+str(port)
       self.insertPort(port, entity.dpid)
-      self.insertSwitchEntities(id, port)
+      #self.insertSwitchEntities(last_switch, port, entity.dpid)
     #print entity.ports
 
   def storeLink(self, link):
-    print "a guardar link"
+    print "storing link"
     print "Port1:" + str(link.port1) + " Port2: " + str(link.port2)
     self.insertLink(link)
 
+  def storeFlowTable(self, dpid, flowTable):
+    print "storing flow table of switch"
+    self.insertFlowTable(self, dpid, flowTable)
+
   def deleteEntity(self, entity):
-    print "a apagar entity"
+    print "deleting entity"
     print entity.dpid
 
   def deletelink(self, link):
-    print "a apagar link"
+    print "deleting link"
     self.deleteEntity()
 
+  def deleteFlowTable(self, table):
+    print "deleting flow table"
+
   def getAllSwitchs(self):
-    print " a ler todos os switchs"
+    print " reading all switchs"
     #self.selectAll("switch")
 
   def getAllLinks(self):
-    print "a ler todos os links"
-    #self.selectAll("link")
+    print "reading all links"
+    self.selectAll("link")
+
+  def getFlowTable(self, dpid):
+    return "flowtable"
 
   def selectAll(self, param=None):
     if param is None:
@@ -72,7 +82,7 @@ class OpenflowTopologyPersistence():
     if len(self.selectbydpid(param_dpid))>=1:
       return
     else:
-      query = ("INSERT INTO switch (dpid) VALUES (" + str(param_dpid) + ")")
+      query = ("INSERT INTO switch (dpid) VALUES (" + str(param_dpid) + ")ON DUPLICATE KEY UPDATE dpid=VALUES(dpid);")
       self._db_cursor = self._driverConnection.getCursor()
       self._db_cursor.execute(query)
       dpid = self._db_cursor.lastrowid
@@ -84,7 +94,9 @@ class OpenflowTopologyPersistence():
 
   def insertLink(self, param_link):
     insert_query = ("INSERT INTO link (entity1_port, entity1_dpid, entity2_port, entity2_dpid) "
-                    "VALUES ("+str(param_link.port1)+","+str(param_link.dpid1)+","+str(param_link.port1)+","+str(param_link.dpid2)+")")
+                    "VALUES ("+str(param_link.port1)+","+str(param_link.dpid1)+","+str(param_link.port2)+","+str(param_link.dpid2)+")"
+                    "ON DUPLICATE KEY UPDATE entity1_port=VALUES(entity1_port), entity1_dpid=VALUES(entity1_dpid), entity2_port=VALUES(entity2_port), entity2_dpid=VALUES(entity2_dpid);")
+
     self._db_cursor = self._driverConnection.getCursor()
     self._db_cursor.execute(insert_query)
     id = self._db_cursor.lastrowid
@@ -95,18 +107,17 @@ class OpenflowTopologyPersistence():
 
   def insertPort(self, param_idport, param_idswitch):
     insert_query = ("INSERT INTO port(id_port, id_switch)" 
-                    "VALUES("+str(param_idport)+","+ str(param_idswitch)+")")
-    self._db_cursor = self._driverConnection.getCursor()
-    self._db_cursor.execute(insert_query)
+                    "VALUES("+str(param_idport)+","+ str(param_idswitch)+")"
+                    "ON DUPLICATE KEY UPDATE id_port=VALUES(id_port), id_switch=VALUES(id_switch);")
     id = self._db_cursor.lastrowid
     self._driverConnection.commit()
     # print ID da entrada na ibase de dados
     print("Last ID inserted on link table:" + str(id))
     self._db_cursor.close()
 
-  def insertSwitchEntities(self, param_id, param_port):
-    insert_query = ("INSERT INTO switchesentities(id, id_port)"
-                    "VALUES(" + str(param_id) + "," + str(param_port) + ")")
+  def insertSwitchEntities(self, param_id, param_idport, param_identity):
+    param_id = 1
+    insert_query = ("INSERT INTO switchentities(id, id_port, id_entity) VALUES(" + str(param_id) + "," + str(param_idport) + "," + str(param_identity) + ") ON DUPLICATE KEY UPDATE id=VALUES(id), id_port=VALUES(id_port), id_entity=VALUES(id_entity);")
     self._db_cursor = self._driverConnection.getCursor()
     self._db_cursor.execute(insert_query)
     id = self._db_cursor.lastrowid

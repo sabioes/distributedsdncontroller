@@ -25,6 +25,7 @@ import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str, str_to_dpid
 from pox.lib.util import str_to_bool
 import time
+from pox.topology.topology import *
 
 from pox.topology.topology import Topology
 log = core.getLogger()
@@ -121,6 +122,7 @@ class LearningSwitch (object):
         #log.info("Holding down flood for %s", dpid_to_str(event.dpid))
       msg.data = event.ofp
       msg.in_port = event.port
+      #self.
       self.connection.send(msg)
 
     def drop (duration = None):

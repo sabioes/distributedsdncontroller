@@ -58,10 +58,10 @@ class OpenFlowTopology (object):
     databaseinitiator = DatabaseInitiator()
     databaseinitiator.createTopologyTables()
 
-    self.initSwithes()
+    self.initSwiths()
     self.initLinks()
 
-  def initSwithes(self):
+  def initSwiths(self):
     list = self._topologyPersistence.getAllSwitchs()
 
     if list is None:
@@ -125,6 +125,7 @@ class OpenFlowTopology (object):
       self.topology.addEntity(sw)
       sw.raiseEvent(SwitchJoin, sw)
       self._topologyPersistence.storeSwitch(sw)
+      #self._topologyPersistence.storeflowtable(sw.dpid, sw.flow_table)
     #### save entity with DPID in database storage
 
 
@@ -503,7 +504,4 @@ def launch ():
   if not core.hasComponent("openflow_topology"):
     core.register("openflow_topology", OpenFlowTopology())
     #core.registerNew(OpenFlowTopology, 'enable', None)
-
-
-
 
