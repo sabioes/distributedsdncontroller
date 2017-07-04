@@ -133,9 +133,9 @@ class OpenflowTopologyPersistence():
     try:
       self._db_cursor = self._driverConnection.getCursor()
 
-      print("+++++++++++++++++++++++++++++++++++\n"
-            "++             "+id+"             ++"
-            "++++++++++++++++++++++++++++++++++++")
+      print "+++++++++++++++++++++++++++++++++++"
+      print id
+      print "+++++++++++++++++++++++++++++++++++"
       self._db_cursor.execute(id)
 
     except Error as error:
