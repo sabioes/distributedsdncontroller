@@ -54,10 +54,12 @@ class OpenFlowTopology (object):
 
   def __init__ (self):
     core.listen_to_dependencies(self, ['topology'], short_attrs=True)
+
     #database initiator drop if exists and create database and your tables
+    #revison this excert of code can have problems
     databaseinitiator = DatabaseInitiator()
     databaseinitiator.createTopologyTables()
-
+    #populate
     self.initSwiths()
     self.initLinks()
 
@@ -141,8 +143,7 @@ class OpenFlowTopology (object):
       sw._connection = None
       log.info("Switch " + str(event.dpid) + " disconnected")
 
-    self._topologyPersistence.deleteEntity(sw);
-
+    self._topologyPersistence.removeSwitch(sw);
 
 class OpenFlowPort (Port):
   """

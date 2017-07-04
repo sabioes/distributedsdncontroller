@@ -30,15 +30,17 @@ class OpenflowTopologyPersistence():
     print "storing flow table of switch"
     self.insertFlowTable(self, dpid, flowTable)
 
-  def deleteEntity(self, entity):
+  def removeSwitch(self, switch):
     print "deleting entity"
-    print entity.dpid
+    self.deleteSwitch(switch)
+    print switch.dpid
 
-  def deletelink(self, link):
+  def removelink(self, link):
     print "deleting link"
-    self.deleteEntity()
+    self.deleteLink(link.dpid1, link.dpid2)
+   #self.deleteEntity()
 
-  def deleteFlowTable(self, table):
+  def removeFlowTable(self, table):
     print "deleting flow table"
 
   def getAllSwitchs(self):
