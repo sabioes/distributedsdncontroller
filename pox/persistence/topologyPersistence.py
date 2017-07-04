@@ -132,6 +132,10 @@ class OpenflowTopologyPersistence():
     query = ("DELETE FORM switch WHERE id ="+str(param_dpid))
     try:
       self._db_cursor = self._driverConnection.getCursor()
+
+      print("+++++++++++++++++++++++++++++++++++\n"
+            "++             "+id+"             ++"
+            "++++++++++++++++++++++++++++++++++++")
       self._db_cursor.execute(id)
 
     except Error as error:
