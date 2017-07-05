@@ -142,8 +142,11 @@ class OpenFlowTopology (object):
                  (dpidToStr(event.dpid),))
       sw._connection = None
       log.info("Switch " + str(event.dpid) + " disconnected")
-
-    self._topologyPersistence.removeSwitch(sw);
+  #REMOVER LINKS ANTES DE ROMOVER SWITCH
+    print "SWITCH ID: "+str(sw.dpid)
+    self._topologyPersistence.removelink(sw.dpid)
+    self._topologyPersistence.removePort(sw.dpid)
+    self._topologyPersistence.removeSwitch(sw)
 
 class OpenFlowPort (Port):
   """

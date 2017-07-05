@@ -32,19 +32,21 @@ class OpenflowTopologyPersistence():
 
   def removeSwitch(self, switch):
     print "deleting entity"
-    self.deleteSwitch(switch)
-    print switch.dpid
+    self.deleteSwitch(switch.dpid)
 
-  def removelink(self, link):
+  def removePort(self, dpid):
+    print "deleting port"
+    self.deletePort(dpid)
+
+  def removelink(self, dpid):
     print "deleting link"
-    self.deleteLink(link.dpid1, link.dpid2)
-   #self.deleteEntity()
+    self.deleteLink(dpid)
 
   def removeFlowTable(self, table):
     print "deleting flow table"
 
   def getAllSwitchs(self):
-    print " reading all switchs"
+    print "reading all switchs"
     #self.selectAll("switch")
 
   def getAllLinks(self):
@@ -129,14 +131,10 @@ class OpenflowTopologyPersistence():
     self._db_cursor.close()
 
   def deleteSwitch(self, param_dpid):
-    query = ("DELETE FORM switch WHERE id ="+str(param_dpid))
+    query = ("DELETE FROM switch WHERE dpid ="+str(param_dpid))
     try:
       self._db_cursor = self._driverConnection.getCursor()
-
-      print "+++++++++++++++++++++++++++++++++++"
-      print id
-      print "+++++++++++++++++++++++++++++++++++"
-      self._db_cursor.execute(id)
+      self._db_cursor.execute(query)
 
     except Error as error:
       print(error)
@@ -144,12 +142,24 @@ class OpenflowTopologyPersistence():
     finally:
       self._db_cursor.close()
 
-
-  def deleteLink(self, param_dpid1, param_dpid2):
-    query = ("DELETE FORM link WHERE entity1_dpid ="+str(param_dpid1)+" AND entity2_dpid ="+str(param_dpid2))
+  def deletePort(self, param_dpid):
+    query = ("DELETE FROM port WHERE id_switch="+str(param_dpid)+";")
     try:
       self._db_cursor = self._driverConnection.getCursor()
-      self._db_cursor.execute(id)
+      self._db_cursor.execute(query)
+    except Error as error:
+      print(error)
+    finally:
+      self._db_cursor.close()
+
+  def deleteLink(self, param_dpid):
+    query = ("SET SQL_SAFE_UPDATES = 0; "
+             "DELETE FROM link WHERE entity1_dpid ="+str(param_dpid)+" OR entity2_dpid ="+str(param_dpid)+";"
+             "SET SQL_SAFE_UPDATES = 1;")
+    print query
+    try:
+      self._db_cursor = self._driverConnection.getCursor()
+      self._db_cursor.execute(query, multi=True)
 
     except Error as error:
       print(error)
