@@ -142,11 +142,7 @@ class OpenFlowTopology (object):
                  (dpidToStr(event.dpid),))
       sw._connection = None
       log.info("Switch " + str(event.dpid) + " disconnected")
-  #REMOVER LINKS ANTES DE ROMOVER SWITCH
-    print "SWITCH ID: "+str(sw.dpid)
-    self._topologyPersistence.removelink(sw.dpid)
-    self._topologyPersistence.removePort(sw.dpid)
-    self._topologyPersistence.removeSwitch(sw)
+
 
 class OpenFlowPort (Port):
   """
@@ -273,6 +269,12 @@ class OpenFlowSwitch (EventMixin, Switch):
     """ Called if we've been disconnected for RECONNECT_TIMEOUT seconds """
     self._reconnectTimeout = None
     core.topology.removeEntity(self)
+    # REMOVER LINKS ANTES DE ROMOVER SWITCH
+    print "SWITCH ID: "+str(self.dpid)
+    self._topologyPersistence.removelink(self.dpid)
+    self._topologyPersistence.removePort(self.dpid)
+    self._topologyPersistence.removeSwitch(self)
+
     self.raiseEvent(SwitchLeave, self)
 
   def _handle_con_PortStatus (self, event):
