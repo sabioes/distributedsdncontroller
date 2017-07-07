@@ -417,6 +417,7 @@ class Discovery (EventMixin):
       return EventHalt
 
     if originatorDPID not in core.openflow.connections:
+
       log.info('Received LLDP packet from unknown switch')
       return EventHalt
 

@@ -363,7 +363,7 @@ class OpenFlowNexus (EventMixin):
     self._connections = ConnectionDict() # DPID -> Connection
 
     from pox.core import core
-
+    print"REGISTOU X OPF"
     self.listenTo(core)
 
   @property
@@ -398,6 +398,7 @@ class OpenFlowNexus (EventMixin):
         pass
 
   def _connect (self, con):
+
     self._connections[con.dpid] = con
   def _disconnect (self, dpid):
     if dpid in self._connections:
