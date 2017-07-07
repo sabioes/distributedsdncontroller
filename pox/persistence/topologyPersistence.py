@@ -97,9 +97,14 @@ class OpenflowTopologyPersistence():
       return dpid
 
   def insertLink(self, param_link):
-    insert_query = ("INSERT INTO link (entity1_port, entity1_dpid, entity2_port, entity2_dpid) "
+    insert_ms_query = ("INSERT INTO link (entity1_port, entity1_dpid, entity2_port, entity2_dpid) "
                     "VALUES ("+str(param_link.port1)+","+str(param_link.dpid1)+","+str(param_link.port2)+","+str(param_link.dpid2)+")"
                     "ON DUPLICATE KEY UPDATE entity1_port=VALUES(entity1_port), entity1_dpid=VALUES(entity1_dpid), entity2_port=VALUES(entity2_port), entity2_dpid=VALUES(entity2_dpid);")
+
+    insert_query = ("INSERT INTO link (entity1_port, entity1_dpid, entity2_port, entity2_dpid) "
+                    "VALUES ("+str(param_link.port1)+","+str(param_link.dpid1)+","+str(param_link.port2)+","+str(param_link.dpid2)+")"
+                    "ON CONFLICT (entity1_port, entity1_dpid, entity2_port, entity2_dpid)  DO UPDATE "
+                    "SET entity1_port = excluded.entity1_port, entity1_dpid = excluded.entity1_dpid, entity2_port = excluded.entity2_port, entity2_dpid = excluded.entity2_dpid;")
 
     self._db_cursor = self._driverConnection.getCursor()
     self._db_cursor.execute(insert_query)
@@ -110,9 +115,15 @@ class OpenflowTopologyPersistence():
     self._db_cursor.close()
 
   def insertPort(self, param_idport, param_idswitch):
-    insert_query = ("INSERT INTO port(id_port, id_switch)" 
+    insert_ms_query = ("INSERT INTO port(id_port, id_switch)" 
                     "VALUES("+str(param_idport)+","+ str(param_idswitch)+")"
                     "ON DUPLICATE KEY UPDATE id_port=VALUES(id_port), id_switch=VALUES(id_switch);")
+
+    insert_query = ("INSERT INTO port(id_port, id_switch)" 
+                    "VALUES("+str(param_idport)+","+ str(param_idswitch)+")"
+                    "ON CONFLICT(id_port, id_switch) DO UPDATE "
+                    "SET id_port=excluded.id_port, id_switch=excluded.id_switch;")
+
     id = self._db_cursor.lastrowid
     self._driverConnection.commit()
     # print ID da entrada na ibase de dados

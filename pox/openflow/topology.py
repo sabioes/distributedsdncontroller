@@ -57,8 +57,8 @@ class OpenFlowTopology (object):
 
     #database initiator drop if exists and create database and your tables
     #revison this excert of code can have problems
-    databaseinitiator = DatabaseInitiator()
-    databaseinitiator.createTopologyTables()
+    #databaseinitiator = DatabaseInitiator()
+    #databaseinitiator.createTopologyTables()
     #populate
     self.initSwiths()
     self.initLinks()
