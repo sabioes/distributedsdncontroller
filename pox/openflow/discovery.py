@@ -449,6 +449,7 @@ class Discovery (EventMixin):
 
     if link not in self.adjacency:
       self.adjacency[link] = time.time()
+      print time.time()
       log.info('link detected: %s', link)
       self.raiseEventNoErrors(LinkEvent, True, link, event)
     else:

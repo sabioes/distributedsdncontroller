@@ -34,6 +34,7 @@ from pox.lib.recoco import Timer
 from collections import defaultdict
 from pox.openflow.discovery import Discovery
 from pox.lib.util import dpid_to_str
+from pox.persistence.poxpersistence import PoxPersistence
 import time
 
 log = core.getLogger()
@@ -420,7 +421,7 @@ class l2_multi (EventMixin):
   ])
 
   def __init__ (self):
-    # Listen to dependencies (specifying priority 0 for openflow)
+    # Listen to dependencies ( )
     core.listen_to_dependencies(self, listen_args={'openflow':{'priority':0}})
 
   def _handle_openflow_discovery_LinkEvent (self, event):
@@ -447,6 +448,8 @@ class l2_multi (EventMixin):
       # This link no longer okay
       if sw2 in adjacency[sw1]: del adjacency[sw1][sw2]
       if sw1 in adjacency[sw2]: del adjacency[sw2][sw1]
+
+
 
       # But maybe there's another way to connect these...
       for ll in core.openflow_discovery.adjacency:
