@@ -21,7 +21,7 @@ class DriverConnection(object):
     def connect(self):
       try:
         #self._db_connection = mysql.connector.connect(user='rooty', password='qwertz', host='192.168.182.1', database='controllerdb')
-        self._db_connection = psycopg2.connect("dbname='controllerdb' user='postgres' host='localhost' password='qwertz'")
+        self._db_connection = psycopg2.connect("dbname='controllerdb' user='postgres' host='192.168.182.1' password='qwertz'")
       except Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
           logging.info("Something is wrong with your user name or password")
