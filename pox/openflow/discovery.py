@@ -246,7 +246,7 @@ class Link (namedtuple("LinkBase",("dpid1","port1","dpid2","port2"))):
 
 class Discovery (EventMixin):
   """
-  Component that attempts to discover network toplogy.
+  Component that attempts to discover network topology.
 
   Sends out specially-crafted LLDP packets, and monitors their arrival.
   """
@@ -447,9 +447,14 @@ class Discovery (EventMixin):
     link = Discovery.Link(originatorDPID, originatorPort, event.dpid,
                           event.port)
 
+    print link.dpid1,link.dpid2
+
     if link not in self.adjacency:
       self.adjacency[link] = time.time()
-      print time.time()
+      print "Print dos adjacentes"
+      print type(link)
+      print "+---------------+"
+      #print time.time()
       log.info('link detected: %s', link)
       self.raiseEventNoErrors(LinkEvent, True, link, event)
     else:
