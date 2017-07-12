@@ -37,6 +37,8 @@ from pox.lib.util import dpid_to_str
 from pox.persistence.poxpersistence import PoxPersistence
 import time
 
+from pox.persistence.topologyPersistence import OpenflowTopologyPersistence
+
 log = core.getLogger()
 
 # Adjacency map.  [sw1][sw2] -> port from sw1 to sw2
@@ -420,9 +422,15 @@ class l2_multi (EventMixin):
     PathInstalled,
   ])
 
+  _topologyPersistence = OpenflowTopologyPersistence()
+
   def __init__ (self):
     # Listen to dependencies ( )
+    # populate all dictionaries with switchs, adjacency, mac_map and path_map, waithing _maps
     core.listen_to_dependencies(self, listen_args={'openflow':{'priority':0}})
+
+  def loadSwitches(self):
+    pass
 
   def _handle_openflow_discovery_LinkEvent (self, event):
     def flip (link):
@@ -448,8 +456,6 @@ class l2_multi (EventMixin):
       # This link no longer okay
       if sw2 in adjacency[sw1]: del adjacency[sw1][sw2]
       if sw1 in adjacency[sw2]: del adjacency[sw2][sw1]
-
-
 
       # But maybe there's another way to connect these...
       for ll in core.openflow_discovery.adjacency:
@@ -483,6 +489,8 @@ class l2_multi (EventMixin):
         del mac_map[mac]
 
   def _handle_openflow_ConnectionUp (self, event):
+    self.loadSwitches()
+
     sw = switches.get(event.dpid)
     if sw is None:
       # New switch
