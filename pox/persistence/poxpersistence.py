@@ -32,6 +32,7 @@ class PoxPersistence(object):
     _db_cursor = None
 
     def __init__(self):
+      # type: () -> object
       '''
       Constructor
       '''

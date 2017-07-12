@@ -35,6 +35,8 @@ import time
 from collections import namedtuple
 from random import shuffle, random
 
+from pox.persistence.discoveryPersistence import DiscoveryPersistence
+from pox.persistence.poxpersistence import PoxPersistence
 
 log = core.getLogger()
 
@@ -263,6 +265,8 @@ class Discovery (EventMixin):
 
   Link = Link
 
+  _discoverypersistence = DiscoveryPersistence() # persistence of  discovery model
+
   def __init__ (self, install_flow = True, explicit_drop = True,
                 link_timeout = None, eat_early_packets = False):
     self._eat_early_packets = eat_early_packets
@@ -444,17 +448,15 @@ class Discovery (EventMixin):
       log.warning("Port received its own LLDP packet; ignoring")
       return EventHalt
 
-    link = Discovery.Link(originatorDPID, originatorPort, event.dpid,
-                          event.port)
+    link = Discovery.Link(originatorDPID, originatorPort, event.dpid, event.port)
 
-    print link.dpid1,link.dpid2
+    #Modifications to interact with a shared data from other controllers
+    self._discoverypersistence.insertLink(link)
+
+    #print link.dpid1,link.dpid2
 
     if link not in self.adjacency:
       self.adjacency[link] = time.time()
-      print "Print dos adjacentes"
-      print type(link)
-      print "+---------------+"
-      #print time.time()
       log.info('link detected: %s', link)
       self.raiseEventNoErrors(LinkEvent, True, link, event)
     else:
@@ -468,6 +470,9 @@ class Discovery (EventMixin):
       self.raiseEventNoErrors(LinkEvent, False, link)
     for link in links:
       self.adjacency.pop(link, None)
+    # persistence interation
+    for link in links:
+      self._discoverypersistence.removeLink(link)
 
   def is_edge_port (self, dpid, port):
     """
