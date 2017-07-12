@@ -33,7 +33,11 @@ on the switch to implement the following logic:
 Note that unlike the other learning switches *we keep no state in the
 controller*.  In truth, we could implement this whole thing using OVS's
 learn action, but doing it something like is done here will still allow
-us to implement access control or something at the controller.
+us to implement access control or something at
+DEBUG:forwarding.l2_multi:Connect [00-00-00-00-00-01 4]
+DEBUG:topology:<OpenFlowSwitch 00-00-00-00-00-01> (id: 1) joined
+storing entity
+1the controller.
 """
 
 from pox.core import core

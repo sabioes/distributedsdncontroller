@@ -217,6 +217,8 @@ class OpenFlowSwitch (EventMixin, Switch):
     BarrierIn,
   ])
 
+  _topologyPersistence = PoxPersistence();
+
   def __init__ (self, dpid):
     if not dpid:
       raise AssertionError("OpenFlowSwitch should have dpid")
