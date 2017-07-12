@@ -42,7 +42,7 @@ class DiscoveryPersistence():
     #id = self._db_cursor.fetchone()[0]
     #self._driverConnection.commit()
     # print ID da entrada na ibase de dados
-    print("Last ID inserted on link table:" + str(id))
+    #print("Last ID inserted on link table:" + str(id))
     self._db_cursor.close()
 
   def selectlink(self, param_link):

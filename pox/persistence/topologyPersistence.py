@@ -110,8 +110,8 @@ class OpenflowTopologyPersistence():
     self._db_cursor.execute(insert_query)
     id = self._db_cursor.lastrowid
     self._driverConnection.commit()
-    # print ID da entrada na ibase de dados
-    print("Last ID inserted on link table:" + str(id))
+    #print ID da entrada na ibase de dados
+    #print("Last ID inserted on link table:" + str(id))
     self._db_cursor.close()
 
   def insertPort(self, param_idport, param_idswitch):
