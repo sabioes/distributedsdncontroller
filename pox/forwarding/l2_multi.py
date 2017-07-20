@@ -26,6 +26,7 @@ does (mostly) work. :)
 Depends on openflow.discovery
 Works with openflow.spanning_tree
 """
+import pickle
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
@@ -36,8 +37,6 @@ from pox.openflow.discovery import Discovery
 from pox.lib.util import dpid_to_str
 from pox.persistence.poxpersistence import PoxPersistence
 import time
-
-from pox.persistence.topologyPersistence import OpenflowTopologyPersistence
 
 log = core.getLogger()
 
@@ -153,6 +152,7 @@ def _get_path (src, dst, first_port, final_port):
   # Now add the ports
   r = []
   in_port = first_port
+  zz = zip(path[:-1],path[1:])
   for s1,s2 in zip(path[:-1],path[1:]):
     out_port = adjacency[s1][s2]
     r.append((s1,in_port,out_port))
@@ -422,15 +422,10 @@ class l2_multi (EventMixin):
     PathInstalled,
   ])
 
-  _topologyPersistence = OpenflowTopologyPersistence()
-
   def __init__ (self):
     # Listen to dependencies ( )
     # populate all dictionaries with switchs, adjacency, mac_map and path_map, waithing _maps
     core.listen_to_dependencies(self, listen_args={'openflow':{'priority':0}})
-
-  def loadSwitches(self):
-    pass
 
   def _handle_openflow_discovery_LinkEvent (self, event):
     def flip (link):
@@ -477,7 +472,6 @@ class l2_multi (EventMixin):
           # Yup, link goes both ways -- connected!
           adjacency[sw1][sw2] = l.port1
           adjacency[sw2][sw1] = l.port2
-
       # If we have learned a MAC on this port which we now know to
       # be connected to a switch, unlearn it.
       bad_macs = set()
@@ -489,10 +483,9 @@ class l2_multi (EventMixin):
         del mac_map[mac]
 
   def _handle_openflow_ConnectionUp (self, event):
-    self.loadSwitches()
-
     sw = switches.get(event.dpid)
     if sw is None:
+
       # New switch
       sw = Switch()
       switches[event.dpid] = sw
@@ -511,6 +504,7 @@ class l2_multi (EventMixin):
 
 def launch ():
   core.registerNew(l2_multi)
+
 
   timeout = min(max(PATH_SETUP_TIME, 5) * 2, 15)
   Timer(timeout, WaitingPath.expire_waiting_paths, recurring=True)

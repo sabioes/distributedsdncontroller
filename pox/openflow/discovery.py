@@ -265,7 +265,7 @@ class Discovery (EventMixin):
 
   Link = Link
 
-  _discoverypersistence = DiscoveryPersistence() # persistence of  discovery model
+  #_discoverypersistence = DiscoveryPersistence() # persistence of  discovery model
 
   def __init__ (self, install_flow = True, explicit_drop = True,
                 link_timeout = None, eat_early_packets = False):
@@ -471,8 +471,8 @@ class Discovery (EventMixin):
     for link in links:
       self.adjacency.pop(link, None)
     # persistence interation
-    for link in links:
-      self._discoverypersistence.removeLink(link)
+    #for link in links:
+    #  self._discoverypersistence.removeLink(link)
 
   def is_edge_port (self, dpid, port):
     """
