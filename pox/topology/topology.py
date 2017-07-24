@@ -28,7 +28,7 @@ import traceback
 from pox.core import core
 from pox.lib.addresses import *
 from pox.lib.revent import *
-from pox.persistence.poxpersistence import PoxPersistence
+#from pox.persistence.poxpersistence import PoxPersistence
 
 
 class EntityEvent (Event):
@@ -191,7 +191,7 @@ class Topology (EventMixin):
     self._entities = {}
     self.name = name
     self.log = core.getLogger(name)
-    self.poxstore = PoxPersistence()
+    #self.poxstore = PoxPersistence()
 
 
     # If a client registers a handler for these events after they have
