@@ -27,7 +27,7 @@ uses them to populate and manipulate Topology.
 
 from pox.openflow import *
 #from pox.core import core
-from pox.persistence.topologyPersistence import OpenflowTopologyPersistence
+#from pox.persistence.topologyPersistence import OpenflowTopologyPersistence
 from pox.persistence.database import DatabaseInitiator
 from pox.topology.topology import *
 from pox.openflow.discovery import *
@@ -50,7 +50,7 @@ class OpenFlowTopology (object):
   Listens to various OpenFlow-specific events and uses those to manipulate
   Topology accordingly.
   """
-  _topologyPersistence = OpenflowTopologyPersistence()
+  #_topologyPersistence = OpenflowTopologyPersistence()
 
   def __init__ (self):
     core.listen_to_dependencies(self, ['topology'], short_attrs=True)
