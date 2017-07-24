@@ -64,7 +64,7 @@ class OpenFlowTopology (object):
     self.initLinks()
 
   def initSwiths(self):
-    list = self._topologyPersistence.getAllSwitchs()
+    #list = self._topologyPersistence.getAllSwitchs()
 
     if list is None:
       pass
@@ -74,7 +74,7 @@ class OpenFlowTopology (object):
         self.topology.addEntity(sw)
 
   def initLinks(self):
-    list = self._topologyPersistence.getAllLinks()
+    #list = self._topologyPersistence.getAllLinks()
 
     if list is None:
       pass
@@ -103,7 +103,7 @@ class OpenFlowTopology (object):
     if event.added:
       sw1.ports[link.port1].addEntity(sw2, single=True)
       sw2.ports[link.port2].addEntity(sw1, single=True)
-      self._topologyPersistence.storeLink(link)
+      #self._topologyPersistence.storeLink(link)
     elif event.removed:
       sw1.ports[link.port1].entities.discard(sw2)
       sw2.ports[link.port2].entities.discard(sw1)
@@ -126,7 +126,7 @@ class OpenFlowTopology (object):
     if add:
       self.topology.addEntity(sw)
       sw.raiseEvent(SwitchJoin, sw)
-      self._topologyPersistence.storeSwitch(sw)
+      #self._topologyPersistence.storeSwitch(sw)
       #self._topologyPersistence.storeflowtable(sw.dpid, sw.flow_table)
     #### save entity with DPID in database storage
 
@@ -217,7 +217,7 @@ class OpenFlowSwitch (EventMixin, Switch):
     BarrierIn,
   ])
 
-  _topologyPersistence = PoxPersistence();
+  #_topologyPersistence = PoxPersistence();
 
   def __init__ (self, dpid):
     if not dpid:
@@ -273,9 +273,9 @@ class OpenFlowSwitch (EventMixin, Switch):
     core.topology.removeEntity(self)
     # REMOVER LINKS ANTES DE ROMOVER SWITCH
     print "SWITCH ID: "+str(self.dpid)
-    self._topologyPersistence.removelink(self.dpid)
-    self._topologyPersistence.removePort(self.dpid)
-    self._topologyPersistence.removeSwitch(self)
+    #self._topologyPersistence.removelink(self.dpid)
+    #self._topologyPersistence.removePort(self.dpid)
+    #self._topologyPersistence.removeSwitch(self)
 
     self.raiseEvent(SwitchLeave, self)
 
